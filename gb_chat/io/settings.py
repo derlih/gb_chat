@@ -1,2 +1,4 @@
 HEADER_SIZE = 4
 HEADER_BYTEORDER = "big"
+
+MSG_ENCODING = "utf-8"
