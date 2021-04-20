@@ -3,7 +3,7 @@ from ..msg.client_to_server import (Authenticate, Chat, ClientToServerMessage,
 from .server import Server
 
 
-class UnsupportedMessage(ValueError):
+class UnsupportedMessageType(TypeError):
     pass
 
 
@@ -25,4 +25,4 @@ class MessageRouter:
         elif isinstance(msg, Leave):
             self._server.on_leave(msg)
         else:
-            raise UnsupportedMessage(f"Unsupported message {type(msg)}")
+            raise UnsupportedMessageType(f"Unsupported message {type(msg)}")

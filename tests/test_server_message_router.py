@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 from gb_chat.msg.client_to_server import (Authenticate, Chat, Join, Leave,
                                           Presence, Quit)
-from gb_chat.server.message_router import MessageRouter, UnsupportedMessage
+from gb_chat.server.message_router import MessageRouter, UnsupportedMessageType
 from gb_chat.server.server import Server
 
 
@@ -18,7 +18,7 @@ def sut(server):
 
 
 def test_raises_when_unsupported_message_type(sut):
-    with pytest.raises(UnsupportedMessage):
+    with pytest.raises(UnsupportedMessageType):
         sut.route(MagicMock())
 
 
