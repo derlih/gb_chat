@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 
 import pytest
 from gb_chat.io.deserializer import Deserializer
@@ -29,12 +29,39 @@ def test_no_call_deserializer_when_not_enought_data(data, sut, deserializer):
     assert not deserializer.on_msg.called
 
 
-def prepare_msg(data: bytes):
-    header = len(data).to_bytes(HEADER_SIZE, HEADER_BYTEORDER)
-    return header + data
+def prepare_msgs(*args):
+    return b"".join(
+        [len(msg).to_bytes(HEADER_SIZE, HEADER_BYTEORDER) + msg for msg in args]
+    )
 
 
 def test_call_deserializer_when_one_msg_feed(sut, deserializer):
-    data = prepare_msg(b"abc")
+    data = prepare_msgs(b"abc")
     sut.feed(data)
     deserializer.on_msg.assert_called_once_with(b"abc")
+
+
+msg_data = prepare_msgs(b"abc")
+
+
+@pytest.mark.parametrize(
+    "chunk1,chunk2",
+    [
+        (msg_data[:1], msg_data[1:]),
+        (msg_data[:HEADER_SIZE], msg_data[HEADER_SIZE:]),
+        (msg_data[: HEADER_SIZE + 1], msg_data[HEADER_SIZE + 1 :]),
+    ],
+)
+def test_call_deserializer_when_one_msg_feed_in_parts(
+    chunk1, chunk2, sut, deserializer
+):
+    sut.feed(chunk1)
+    assert not deserializer.on_msg.called
+    sut.feed(chunk2)
+    deserializer.on_msg.assert_called_once_with(b"abc")
+
+
+def test_call_deserializer_when_two_msg_feed(sut, deserializer):
+    data = prepare_msgs(b"abc", b"cdef")
+    sut.feed(data)
+    assert deserializer.on_msg.mock_calls == [call(b"abc"), call(b"cdef")]
