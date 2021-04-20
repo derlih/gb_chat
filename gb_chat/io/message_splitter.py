@@ -29,6 +29,6 @@ class MessageSplitter:
             return
 
         msg_data = rest_data[:msg_size]
-        self._deserializer.on_msg(msg_data)
+        self._deserializer.deserialize(msg_data)
         self._data = rest_data[msg_size:]
         self._process_data()

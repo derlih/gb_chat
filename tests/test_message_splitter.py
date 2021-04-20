@@ -26,7 +26,7 @@ def test_zero_msg_size_raises(sut):
 )
 def test_no_call_deserializer_when_not_enought_data(data, sut, deserializer):
     sut.feed(data)
-    assert not deserializer.on_msg.called
+    assert not deserializer.deserialize.called
 
 
 def prepare_msgs(*args):
@@ -38,7 +38,7 @@ def prepare_msgs(*args):
 def test_call_deserializer_when_one_msg_feed(sut, deserializer):
     data = prepare_msgs(b"abc")
     sut.feed(data)
-    deserializer.on_msg.assert_called_once_with(b"abc")
+    deserializer.deserialize.assert_called_once_with(b"abc")
 
 
 msg_data = prepare_msgs(b"abc")
@@ -56,12 +56,12 @@ def test_call_deserializer_when_one_msg_feed_in_parts(
     chunk1, chunk2, sut, deserializer
 ):
     sut.feed(chunk1)
-    assert not deserializer.on_msg.called
+    assert not deserializer.deserialize.called
     sut.feed(chunk2)
-    deserializer.on_msg.assert_called_once_with(b"abc")
+    deserializer.deserialize.assert_called_once_with(b"abc")
 
 
 def test_call_deserializer_when_two_msg_feed(sut, deserializer):
     data = prepare_msgs(b"abc", b"cdef")
     sut.feed(data)
-    assert deserializer.on_msg.mock_calls == [call(b"abc"), call(b"cdef")]
+    assert deserializer.deserialize.mock_calls == [call(b"abc"), call(b"cdef")]
