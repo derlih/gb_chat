@@ -1,2 +1,2 @@
 HEADER_SIZE = 4
-BYTEORDER = "big"
+HEADER_BYTEORDER = "big"
