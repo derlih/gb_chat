@@ -1,6 +1,4 @@
-from typing import Any, Dict
-
-JSON = Dict[str, Any]
+from .json import JSON
 
 
 class ParsedMessageHandler:
