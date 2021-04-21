@@ -16,7 +16,7 @@ class Quit:
 
 @dataclass(frozen=True)
 class Presence:
-    status: Optional[Status]
+    status: Optional[Status] = None
 
 
 @dataclass(frozen=True)
