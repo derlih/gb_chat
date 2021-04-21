@@ -88,7 +88,7 @@ def get_logger(name: Optional[str] = None) -> Any:
     logger = structlog.get_logger()
     if not name:
         f = sys._getframe().f_back  # type: ignore
-        name = f.f_globals.get("__name__") or None
+        name = f.f_globals.get("__name__") or None  # type: ignore
 
     if name:
         return logger.bind(logger=name)
