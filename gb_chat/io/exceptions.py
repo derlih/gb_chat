@@ -1,0 +1,6 @@
+class MessageSizeError(ValueError):
+    pass
+
+
+class DeserializationError(ValueError):
+    pass

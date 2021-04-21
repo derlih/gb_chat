@@ -1,9 +1,6 @@
 from .deserializer import Deserializer
+from .exceptions import MessageSizeError
 from .settings import HEADER_BYTEORDER, HEADER_SIZE
-
-
-class MessageSizeError(ValueError):
-    pass
 
 
 class MessageSplitter:

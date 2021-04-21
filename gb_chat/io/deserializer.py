@@ -1,13 +1,9 @@
 from json import JSONDecodeError, loads
 from typing import Callable
 
+from .exceptions import DeserializationError
 from .parsed_msg_handler import JSON, ParsedMessageHandler
 from .settings import MSG_ENCODING
-
-
-class DeserializationError(ValueError):
-    pass
-
 
 Decode = Callable[[bytes], str]
 Loads = Callable[[str], JSON]
