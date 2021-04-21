@@ -236,7 +236,7 @@ def main(address: str, port: int) -> None:
                 logger.info("Start server")
                 send_probes_thread.start()
                 handler.run()
-            except StopProcessing:
+            except (StopProcessing, KeyboardInterrupt):
                 logger.info("Stop server")
             except:
                 logger.exception("Stop server due to error")
