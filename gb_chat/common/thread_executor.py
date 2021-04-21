@@ -29,8 +29,8 @@ class IoThreadExecutor(ThreadExecutor):
     def execute_all(self) -> None:
         try:
             while True:
-                self._logger.debug("Execute task", qsize=self._queue.qsize())
                 fun = self._queue.get_nowait()
+                self._logger.debug("Execute task", qsize=self._queue.qsize())
                 fun()
         except Empty:
             return

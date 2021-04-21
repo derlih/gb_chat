@@ -1,11 +1,14 @@
 import errno
 import selectors
 import socket
+import threading
+from time import sleep
 from typing import Any, Dict, List
 
 import click
 import structlog
 
+from gb_chat.common.thread_executor import IoThreadExecutor, ThreadExecutor
 from gb_chat.io.deserializer import Deserializer
 from gb_chat.io.message_framer import MessageFramer
 from gb_chat.io.message_sender import MessageSender
@@ -88,9 +91,15 @@ class ClientConnection:
 
 
 class SocketHandler:
-    def __init__(self, sel: selectors.BaseSelector, server: Server) -> None:
+    def __init__(
+        self,
+        sel: selectors.BaseSelector,
+        server: Server,
+        io_thread_executor: ThreadExecutor,
+    ) -> None:
         self._sel = sel
         self._server = server
+        self._io_thread_executor = io_thread_executor
         self._clients: Dict[socket.socket, ClientConnection] = {}
 
     def accept_new_connection(self, server_sock: socket.socket) -> None:
@@ -123,11 +132,12 @@ class SocketHandler:
         while True:
             self._process_io_events()
             self._disconnect_requested_clients()
+            self._io_thread_executor.execute_all()
 
     def _process_io_events(self) -> None:
         events: List[Any] = []
         try:
-            events = self._sel.select()
+            events = self._sel.select(0)
 
             for key, mask in events:
                 callback = key.data
@@ -179,6 +189,17 @@ class SocketHandler:
                     self._disconnect_clients(connection)
 
 
+def schedule_probes_loop(
+    server: Server,
+    io_thread_executor: IoThreadExecutor,
+    event: threading.Event,
+    timeout: float,
+) -> None:
+    while not event.is_set():
+        sleep(timeout)
+        io_thread_executor.schedule(server.send_probes)
+
+
 @click.command()
 @click.option("-a", "--address", type=str, default="localhost")
 @click.option("-p", "--port", type=click.IntRange(1, 65535), default=7777)
@@ -193,8 +214,10 @@ def main(address: str, port: int) -> None:
         server_sock.listen()
 
         with selectors.DefaultSelector() as sel:
+            event = threading.Event()
+            io_thread_executor = IoThreadExecutor()
             server = Server()
-            handler = SocketHandler(sel, server)
+            handler = SocketHandler(sel, server, io_thread_executor)
 
             sel.register(
                 server_sock,
@@ -202,13 +225,25 @@ def main(address: str, port: int) -> None:
                 lambda sock, _: handler.accept_new_connection(sock),  # type: ignore
             )
 
+            send_probes_thread = threading.Thread(
+                name="schedule_probes",
+                target=lambda: schedule_probes_loop(
+                    server, io_thread_executor, event, 10.0
+                ),
+            )
+
             try:
                 logger.info("Start server")
+                send_probes_thread.start()
                 handler.run()
             except StopProcessing:
                 logger.info("Stop server")
             except:
                 logger.exception("Stop server due to error")
+            finally:
+                event.set()
+                logger.debug("Waiting for threads to stop")
+                send_probes_thread.join()
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 from ..log import get_logger
 from ..msg.client_to_server import (Authenticate, Chat, Join, Leave, Presence,
                                     Quit)
-from ..msg.server_to_client import Response
+from ..msg.server_to_client import Probe, Response
 from .client import Client
 
 _logger: Any = get_logger()
@@ -14,6 +14,11 @@ class Server:
     def __init__(self) -> None:
         self._clients: List[Client] = []
         self._auth_clients: Dict[str, Client] = {}
+
+    def send_probes(self) -> None:
+        _logger.debug("Send probes")
+        for _, client in self._auth_clients.items():
+            client.msg_sender.send(Probe())
 
     def on_client_connected(self, client: Client) -> None:
         _logger.info("Client connected")
