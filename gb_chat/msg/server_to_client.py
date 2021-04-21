@@ -9,6 +9,7 @@ class Response:
     msg: str
 
 
+@dataclass
 class Probe:
     pass
 

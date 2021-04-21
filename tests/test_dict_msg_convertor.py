@@ -1,0 +1,67 @@
+from http import HTTPStatus
+from unittest.mock import MagicMock
+
+import pytest
+from gb_chat.client.message_router import MessageRouter as ClientMessageRouter
+from gb_chat.io.message_sender import MessageSender
+from gb_chat.io.parsed_msg_handler import ParsedMessageHandler
+from gb_chat.io.serializer import Serializer
+from gb_chat.msg.client_to_server import (Authenticate, Chat, Join, Leave,
+                                          Presence, Quit)
+from gb_chat.msg.server_to_client import Probe, Response
+from gb_chat.msg.status import Status
+from gb_chat.server.message_router import MessageRouter as ServerMessageRouter
+
+test_data_client_to_server = [
+    (
+        Authenticate("user_name", "pass"),
+        {
+            "action": "authenticate",
+            "time": 123,
+            "user": {"account_name": "user_name", "password": "pass"},
+        },
+    ),
+    (Quit(), {"action": "quit"}),
+    (Presence(), {"action": "presence", "time": 123}),
+    (Presence(Status.ONLINE), {"action": "presence", "time": 123, "status": "online"},),
+    (
+        Chat("recipient", "message text"),
+        {"action": "msg", "time": 123, "to": "recipient", "message": "message text",},
+    ),
+    (Join("#room_name"), {"action": "join", "room": "#room_name", "time": 123}),
+    (Leave("#room_name"), {"action": "leave", "room": "#room_name", "time": 123}),
+]
+
+test_data_server_to_client = [
+    (
+        Response(HTTPStatus.OK, "message text"),
+        {"response": 200, "message": "message text", "time": 123},
+    ),
+    (Probe(), {"action": "probe", "time": 123}),
+]
+
+
+@pytest.mark.parametrize(
+    "msg,expected", test_data_client_to_server + test_data_server_to_client
+)
+def test_convert_msg_to_dict(msg, expected):
+    serializer = MagicMock(spec_set=Serializer)
+    sut = MessageSender(serializer, MagicMock(return_value=123))
+    sut.send(msg)
+    serializer.serialize.assert_called_once_with(expected)
+
+
+@pytest.mark.parametrize("expected,msg_dict", test_data_client_to_server)
+def test_convert_incomming_server_dict_to_msg(expected, msg_dict):
+    router = MagicMock(spec_set=ServerMessageRouter)
+    sut = ParsedMessageHandler(router)
+    sut.process(msg_dict)
+    router.route.assert_called_once_with(expected)
+
+
+@pytest.mark.parametrize("expected,msg_dict", test_data_server_to_client)
+def test_convert_incomming_client_dict_to_msg(expected, msg_dict):
+    router = MagicMock(spec_set=ClientMessageRouter)
+    sut = ParsedMessageHandler(router)
+    sut.process(msg_dict)
+    router.route.assert_called_once_with(expected)

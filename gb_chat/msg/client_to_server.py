@@ -10,6 +10,7 @@ class Authenticate:
     password: str
 
 
+@dataclass
 class Quit:
     pass
 
