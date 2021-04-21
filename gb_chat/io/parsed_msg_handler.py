@@ -1,11 +1,10 @@
 from http import HTTPStatus
 from typing import Optional, Union, cast
 
-from gb_chat.msg.server_to_client import Probe, Response
-
 from ..client.message_router import MessageRouter as ClientMessageRouter
 from ..msg.client_to_server import (Authenticate, Chat, Join, Leave, Presence,
                                     Quit)
+from ..msg.server_to_client import Probe, Response
 from ..msg.status import Status
 from ..server.message_router import MessageRouter as ServerMessageRouter
 from .json import JSON

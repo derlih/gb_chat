@@ -1,8 +1,7 @@
 from json import dumps
 from typing import Callable
 
-from gb_chat.io.exceptions import SerializationError
-
+from .exceptions import SerializationError
 from .json import JSON
 from .send_buffer import SendBuffer
 from .settings import MSG_ENCODING
