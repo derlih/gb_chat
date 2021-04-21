@@ -68,7 +68,9 @@ def mainloop(
 @click.command()
 @click.option("-a", "--address", type=str, default="localhost")
 @click.option("-p", "--port", type=click.IntRange(1, 65535), default=7777)
-def main(address: str, port: int) -> None:
+@click.option("-u", "--username", type=str, required=True)
+@click.option("--password", type=str, required=True)
+def main(address: str, port: int, username: str, password: str) -> None:
     configure_logging(structlog.dev.ConsoleRenderer(colors=False))
     logger = _logger.bind(address=address, port=port)
 
@@ -91,6 +93,7 @@ def main(address: str, port: int) -> None:
 
         logger.info("Connected to server")
         sock.setblocking(False)
+        client.login(username, password)
 
         try:
             mainloop(sock, send_buffer, msg_splitter)

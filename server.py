@@ -117,7 +117,7 @@ class SocketHandler:
             self._sel.register(
                 sock, selectors.EVENT_READ | selectors.EVENT_WRITE, self._process_sock_event  # type: ignore
             )
-            _logger.info("New client connected")
+            _logger.debug("New client connected")
 
     def run(self) -> None:
         while True:
@@ -160,7 +160,7 @@ class SocketHandler:
             sock = client_connection.socket
             with bind_remote_address_to_logger(sock):
                 with bind_client_name_to_logger(client_connection.client.name):
-                    _logger.info("Client disconnected")
+                    _logger.debug("Client disconnected")
                     self._sel.unregister(sock)
                     sock.close()
                     self._server.on_client_disconnected(self._clients[sock].client)
