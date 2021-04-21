@@ -1,6 +1,11 @@
+from typing import Any
+
+from ..log import get_logger
 from .deserializer import Deserializer
 from .exceptions import MessageSizeError
 from .settings import HEADER_BYTEORDER, HEADER_SIZE
+
+_logger: Any = get_logger()
 
 
 class MessageSplitter:
@@ -10,6 +15,7 @@ class MessageSplitter:
 
     def feed(self, data: bytes) -> None:
         self._data += data
+        _logger.debug("Data received", received=len(data), total=len(self._data))
         self._process_data()
 
     def _process_data(self) -> None:
@@ -26,6 +32,7 @@ class MessageSplitter:
             return
 
         msg_data = rest_data[:msg_size]
+        _logger.debug("Send data to deserializer", msg_size=msg_size)
         self._deserializer.deserialize(msg_data)
         self._data = rest_data[msg_size:]
         self._process_data()
