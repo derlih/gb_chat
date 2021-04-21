@@ -1,10 +1,7 @@
+from ..common.exceptions import UnsupportedMessageType
 from ..msg.client_to_server import (Authenticate, Chat, ClientToServerMessage,
                                     Join, Leave, Presence, Quit)
 from .server import Server
-
-
-class UnsupportedMessageType(TypeError):
-    pass
 
 
 class MessageRouter:

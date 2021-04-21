@@ -1,9 +1,10 @@
 from unittest.mock import MagicMock
 
 import pytest
+from gb_chat.common.exceptions import UnsupportedMessageType
 from gb_chat.msg.client_to_server import (Authenticate, Chat, Join, Leave,
                                           Presence, Quit)
-from gb_chat.server.message_router import MessageRouter, UnsupportedMessageType
+from gb_chat.server.message_router import MessageRouter
 from gb_chat.server.server import Server
 
 
