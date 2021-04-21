@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from gb_chat.client.message_router import MessageRouter as ClientMessageRouter
+from gb_chat.io.exceptions import UnsupportedMessageType
 from gb_chat.io.message_sender import MessageSender
 from gb_chat.io.parsed_msg_handler import ParsedMessageHandler
 from gb_chat.io.serializer import Serializer
@@ -65,3 +66,17 @@ def test_convert_incomming_client_dict_to_msg(expected, msg_dict):
     sut = ParsedMessageHandler(router)
     sut.process(msg_dict)
     router.route.assert_called_once_with(expected)
+
+
+@pytest.mark.parametrize(
+    "msg,router",
+    [
+        ({"action": "foo"}, MagicMock(spec_set=ServerMessageRouter)),
+        ({"a": "b"}, MagicMock(spec_set=ServerMessageRouter)),
+        ({"a": "b"}, MagicMock(spec_set=ClientMessageRouter)),
+    ],
+)
+def test_process_raises_when_unsupported_msg(msg, router):
+    sut = ParsedMessageHandler(router)
+    with pytest.raises(UnsupportedMessageType):
+        sut.process(msg)

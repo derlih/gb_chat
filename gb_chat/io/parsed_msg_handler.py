@@ -1,13 +1,18 @@
 from http import HTTPStatus
-from typing import Optional, Union, cast
+from typing import Any, Optional, Union, cast
+
+from gb_chat.io.exceptions import UnsupportedMessageType
 
 from ..client.message_router import MessageRouter as ClientMessageRouter
+from ..log import get_logger
 from ..msg.client_to_server import (Authenticate, Chat, Join, Leave, Presence,
                                     Quit)
 from ..msg.server_to_client import Probe, Response
 from ..msg.status import Status
 from ..server.message_router import MessageRouter as ServerMessageRouter
 from .json import JSON
+
+_logger: Any = get_logger()
 
 
 class ParsedMessageHandler:
@@ -17,6 +22,7 @@ class ParsedMessageHandler:
         self._msg_router = msg_router
 
     def process(self, msg: JSON) -> None:
+        _logger.debug("Process message", msg=msg)
         if isinstance(self._msg_router, ServerMessageRouter):
             self._process_incomming_server_msg(msg)
         else:
@@ -24,7 +30,11 @@ class ParsedMessageHandler:
 
     def _process_incomming_server_msg(self, msg: JSON) -> None:
         router = cast(ServerMessageRouter, self._msg_router)
-        action = msg["action"]
+        try:
+            action = msg["action"]
+        except KeyError:
+            raise UnsupportedMessageType("No action field in message")
+
         if action == "authenticate":
             user = msg["user"]
             router.route(Authenticate(user["account_name"], user["password"]))
@@ -41,6 +51,8 @@ class ParsedMessageHandler:
             router.route(Join(msg["room"]))
         elif action == "leave":
             router.route(Leave(msg["room"]))
+        else:
+            raise UnsupportedMessageType(f"Unsupported action {action}")
 
     def _process_incomming_client_msg(self, msg: JSON) -> None:
         router = cast(ClientMessageRouter, self._msg_router)
@@ -49,3 +61,5 @@ class ParsedMessageHandler:
                 router.route(Probe())
         elif "response" in msg:
             router.route(Response(HTTPStatus(msg["response"]), msg["message"]))
+        else:
+            raise UnsupportedMessageType(f"Unsupported msg {msg}")

@@ -12,3 +12,7 @@ class SerializationError(ValueError):
 
 class MessageTooBig(ValueError):
     pass
+
+
+class UnsupportedMessageType(ValueError):
+    pass

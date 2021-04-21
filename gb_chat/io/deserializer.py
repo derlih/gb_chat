@@ -1,9 +1,12 @@
 from json import JSONDecodeError, loads
-from typing import Callable
+from typing import Any, Callable
 
+from ..log import get_logger
 from .exceptions import DeserializationError
 from .parsed_msg_handler import JSON, ParsedMessageHandler
 from .settings import MSG_ENCODING
+
+_logger: Any = get_logger()
 
 Decode = Callable[[bytes], str]
 Loads = Callable[[str], JSON]
@@ -24,6 +27,7 @@ class Deserializer:
         try:
             msg_str = self._decode(msg)
             msg_dict = self._loads(msg_str)
+            _logger.debug("Deserialize message", msg=msg_dict)
         except (UnicodeError, JSONDecodeError) as e:
             raise DeserializationError() from e
 
