@@ -87,7 +87,7 @@ def bind_client_name_to_logger(name: str):
 def get_logger(name: Optional[str] = None) -> Any:
     logger = structlog.get_logger()
     if not name:
-        f = sys._getframe()  # type: ignore
+        f = sys._getframe().f_back  # type: ignore
         name = f.f_globals.get("__name__") or None
 
     if name:

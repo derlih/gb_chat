@@ -1,6 +1,8 @@
 from time import time
-from typing import Callable, Union
+from typing import Any, Callable, Union
 
+from ..common.exceptions import UnsupportedMessageType
+from ..log import get_logger
 from ..msg.client_to_server import Authenticate
 from ..msg.client_to_server import Chat as ClientToServerChat
 from ..msg.client_to_server import (ClientToServerMessage, Join, Leave,
@@ -8,6 +10,8 @@ from ..msg.client_to_server import (ClientToServerMessage, Join, Leave,
 from ..msg.server_to_client import Probe, Response, ServerToClientMessage
 from .json import JSON
 from .serializer import Serializer
+
+_logger: Any = get_logger()
 
 TimeFactory = Callable[[], float]
 Message = Union[ClientToServerMessage, ServerToClientMessage]
@@ -21,6 +25,7 @@ class MessageSender:
         self._time_factory = time_factory
 
     def send(self, msg: Message) -> None:
+        _logger.debug("Convert", msg=msg)
         msg_dict = self._convert(msg)
         if not isinstance(msg, Quit):
             msg_dict["time"] = self._time_factory()
@@ -50,3 +55,5 @@ class MessageSender:
             return {"action": "join", "room": msg.room}
         elif isinstance(msg, Leave):
             return {"action": "leave", "room": msg.room}
+        else:
+            raise UnsupportedMessageType("Can't convert message {type(msg)}")

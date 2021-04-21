@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from gb_chat.client.message_router import MessageRouter as ClientMessageRouter
-from gb_chat.io.exceptions import UnsupportedMessageType
+from gb_chat.common.exceptions import UnsupportedMessageType
 from gb_chat.io.message_sender import MessageSender
 from gb_chat.io.parsed_msg_handler import ParsedMessageHandler
 from gb_chat.io.serializer import Serializer
@@ -50,6 +50,13 @@ def test_convert_msg_to_dict(msg, expected):
     sut = MessageSender(serializer, MagicMock(return_value=123))
     sut.send(msg)
     serializer.serialize.assert_called_once_with(expected)
+
+
+def test_send_raises_when_unsupported_message():
+    serializer = MagicMock(spec_set=Serializer)
+    sut = MessageSender(serializer, MagicMock(return_value=123))
+    with pytest.raises(UnsupportedMessageType):
+        sut.send(MagicMock())
 
 
 @pytest.mark.parametrize("expected,msg_dict", test_data_client_to_server)

@@ -1,9 +1,8 @@
 from http import HTTPStatus
 from typing import Any, Optional, Union, cast
 
-from gb_chat.io.exceptions import UnsupportedMessageType
-
 from ..client.message_router import MessageRouter as ClientMessageRouter
+from ..common.exceptions import UnsupportedMessageType
 from ..log import get_logger
 from ..msg.client_to_server import (Authenticate, Chat, Join, Leave, Presence,
                                     Quit)
