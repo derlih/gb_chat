@@ -29,37 +29,37 @@ def test_raises_when_unsupported_message_type(sut):
         sut.route(MagicMock())
 
 
-def test_route_auth(sut, server):
+def test_route_auth(sut, server, client):
     msg = MagicMock(spec=Authenticate)
     sut.route(msg)
-    server.on_auth.assert_called_once_with(msg)
+    server.on_auth.assert_called_once_with(msg, client)
 
 
-def test_route_quit(sut, server):
+def test_route_quit(sut, server, client):
     msg = MagicMock(spec=Quit)
     sut.route(msg)
-    server.on_quit.assert_called_once_with(msg)
+    server.on_quit.assert_called_once_with(msg, client)
 
 
-def test_route_presense(sut, server):
+def test_route_presense(sut, server, client):
     msg = MagicMock(spec=Presence)
     sut.route(msg)
-    server.on_presense.assert_called_once_with(msg)
+    server.on_presense.assert_called_once_with(msg, client)
 
 
-def test_route_chat(sut, server):
+def test_route_chat(sut, server, client):
     msg = MagicMock(spec=Chat)
     sut.route(msg)
-    server.on_chat.assert_called_once_with(msg)
+    server.on_chat.assert_called_once_with(msg, client)
 
 
-def test_route_join(sut, server):
+def test_route_join(sut, server, client):
     msg = MagicMock(spec=Join)
     sut.route(msg)
-    server.on_join.assert_called_once_with(msg)
+    server.on_join.assert_called_once_with(msg, client)
 
 
-def test_route_leave(sut, server):
+def test_route_leave(sut, server, client):
     msg = MagicMock(spec=Leave)
     sut.route(msg)
-    server.on_leave.assert_called_once_with(msg)
+    server.on_leave.assert_called_once_with(msg, client)

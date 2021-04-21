@@ -22,20 +22,20 @@ class Server:
             del self._auth_clients[name]
             return
 
-    def on_auth(self, msg: Authenticate) -> None:
+    def on_auth(self, msg: Authenticate, from_client: Client) -> None:
         pass
 
-    def on_quit(self, msg: Quit) -> None:
+    def on_quit(self, msg: Quit, from_client: Client) -> None:
         pass
 
-    def on_presense(self, msg: Presence) -> None:
+    def on_presense(self, msg: Presence, from_client: Client) -> None:
         pass
 
-    def on_chat(self, msg: Chat) -> None:
+    def on_chat(self, msg: Chat, from_client: Client) -> None:
         pass
 
-    def on_join(self, msg: Join) -> None:
+    def on_join(self, msg: Join, from_client: Client) -> None:
         pass
 
-    def on_leave(self, msg: Leave) -> None:
+    def on_leave(self, msg: Leave, from_client: Client) -> None:
         pass
