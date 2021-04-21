@@ -1,9 +1,10 @@
 import errno
 import selectors
 import socket
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import click
+import structlog
 
 from gb_chat.io.deserializer import Deserializer
 from gb_chat.io.message_framer import MessageFramer
@@ -12,6 +13,8 @@ from gb_chat.io.message_splitter import MessageSplitter
 from gb_chat.io.parsed_msg_handler import ParsedMessageHandler
 from gb_chat.io.send_buffer import SendBuffer
 from gb_chat.io.serializer import Serializer
+from gb_chat.log import (bind_client_name_to_logger,
+                         bind_remote_address_to_logger, configure_logging)
 from gb_chat.server.client import Client
 from gb_chat.server.disconnector import Disconnector
 from gb_chat.server.message_router import MessageRouter
@@ -23,6 +26,10 @@ class NothingToRead(Exception):
 
 
 class UnableToWrite(Exception):
+    pass
+
+
+class StopProcessing(Exception):
     pass
 
 
@@ -84,26 +91,31 @@ class SocketHandler:
         self._server = server
         self._clients: Dict[socket.socket, ClientConnection] = {}
 
-    def accept_new_connection(self, sock: socket.socket) -> None:
-        sock.setblocking(False)
+    def accept_new_connection(self, server_sock: socket.socket) -> None:
+        sock, _ = server_sock.accept()
+        with bind_remote_address_to_logger(sock):
+            sock.setblocking(False)
 
-        disconnector = Disconnector()
-        send_buffer = SendBuffer()
-        msg_framer = MessageFramer(send_buffer)
-        serializer = Serializer(msg_framer)
-        msg_sender = MessageSender(serializer)
-        client = Client(msg_sender, disconnector)
-        msg_router = MessageRouter(self._server, client)
-        parsed_msg_handler = ParsedMessageHandler(msg_router)
-        deserializer = Deserializer(parsed_msg_handler)
-        msg_splitter = MessageSplitter(deserializer)
+            disconnector = Disconnector()
+            send_buffer = SendBuffer()
+            msg_framer = MessageFramer(send_buffer)
+            serializer = Serializer(msg_framer)
+            msg_sender = MessageSender(serializer)
+            client = Client(msg_sender, disconnector)
+            msg_router = MessageRouter(self._server, client)
+            parsed_msg_handler = ParsedMessageHandler(msg_router)
+            deserializer = Deserializer(parsed_msg_handler)
+            msg_splitter = MessageSplitter(deserializer)
 
-        self._clients[sock] = ClientConnection(sock, send_buffer, msg_splitter, client)
-        self._server.on_client_connected(client)
+            self._clients[sock] = ClientConnection(
+                sock, send_buffer, msg_splitter, client
+            )
+            self._server.on_client_connected(client)
 
-        self._sel.register(
-            sock, selectors.EVENT_READ | selectors.EVENT_WRITE, self._process_sock_event  # type: ignore
-        )
+            self._sel.register(
+                sock, selectors.EVENT_READ | selectors.EVENT_WRITE, self._process_sock_event  # type: ignore
+            )
+            structlog.get_logger().info("New client connected")
 
     def run(self) -> None:
         while True:
@@ -111,10 +123,25 @@ class SocketHandler:
             self._disconnect_requested_clients()
 
     def _process_io_events(self) -> None:
-        events = self._sel.select()
-        for key, mask in events:
-            callback = key.data
-            callback(key.fileobj, mask)
+        events: List[Any] = []
+        try:
+            events = self._sel.select()
+
+            for key, mask in events:
+                callback = key.data
+                callback(key.fileobj, mask)
+        except KeyboardInterrupt:
+            self._disconnect_all_clients()
+            raise StopProcessing()
+        except:
+            self._disconnect_all_clients()
+            raise
+
+    def _disconnect_all_clients(self) -> None:
+        clients_to_disconnect: List[ClientConnection] = []
+        for _, client_connection in self._clients.items():
+            clients_to_disconnect.append(client_connection)
+        self._disconnect_clients(*clients_to_disconnect)
 
     def _disconnect_requested_clients(self) -> None:
         clients_to_disconnect: List[ClientConnection] = []
@@ -124,30 +151,38 @@ class SocketHandler:
                 and not client_connection.have_outgoing_data
             ):
                 clients_to_disconnect.append(client_connection)
-        for client_connection in clients_to_disconnect:
-            self._disconnect(client_connection.socket)
+        self._disconnect_clients(*clients_to_disconnect)
 
-    def _disconnect(self, sock: socket.socket) -> None:
-        self._sel.unregister(sock)
-        sock.close()
-        self._server.on_client_disconnected(self._clients[sock].client)
-        del self._clients[sock]
+    def _disconnect_clients(self, *client_connections: ClientConnection) -> None:
+        for client_connection in client_connections:
+            sock = client_connection.socket
+            with bind_remote_address_to_logger(sock):
+                with bind_client_name_to_logger(client_connection.client.name):
+                    self._sel.unregister(sock)
+                    sock.close()
+                    self._server.on_client_disconnected(self._clients[sock].client)
+                    del self._clients[sock]
 
     def _process_sock_event(self, sock: socket.socket, mask: int) -> None:
-        try:
+        with bind_remote_address_to_logger(sock):
             connection = self._clients[sock]
-            if mask & selectors.EVENT_READ:
-                connection.read()
-            if mask & selectors.EVENT_WRITE:
-                connection.write()
-        except Exception:
-            self._disconnect(sock)
+            with bind_client_name_to_logger(connection.client.name):
+                try:
+                    if mask & selectors.EVENT_READ:
+                        connection.read()
+                    if mask & selectors.EVENT_WRITE:
+                        connection.write()
+                except (UnableToWrite, NothingToRead):
+                    self._disconnect_clients(connection)
 
 
 @click.command()
 @click.option("-a", "--address", type=str, default="localhost")
 @click.option("-p", "--port", type=click.IntRange(1, 65535), default=7777)
 def main(address: str, port: int) -> None:
+    configure_logging(structlog.dev.ConsoleRenderer(colors=False))
+    logger = structlog.get_logger(address=address, port=port)
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_sock:
         server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server_sock.setblocking(False)
@@ -164,7 +199,13 @@ def main(address: str, port: int) -> None:
                 lambda sock, _: handler.accept_new_connection(sock),  # type: ignore
             )
 
-            handler.run()
+            try:
+                logger.info("Start server")
+                handler.run()
+            except StopProcessing:
+                logger.info("Stop server")
+            except:
+                logger.exception("Stop server due to error")
 
 
 if __name__ == "__main__":

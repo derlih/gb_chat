@@ -53,8 +53,8 @@ def main(address: str, port: int) -> None:
     msg_splitter = MessageSplitter(deserializer)
 
     with socket(AF_INET, SOCK_STREAM) as sock:
-        sock.setblocking(False)
         sock.connect((address, port))
+        sock.setblocking(False)
         mainloop(sock, send_buffer, msg_splitter)
 
 
