@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from unittest.mock import MagicMock
 
 import pytest
@@ -13,8 +14,8 @@ from gb_chat.msg.status import Status
     "msg,expected",
     [
         (
-            Response(100, "message text"),
-            {"response": 100, "message": "message text", "time": 123},
+            Response(HTTPStatus.OK, "message text"),
+            {"response": 200, "message": "message text", "time": 123},
         ),
         (Probe(), {"action": "probe", "time": 123}),
         (
