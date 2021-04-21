@@ -1,12 +1,14 @@
 from ..common.exceptions import UnsupportedMessageType
 from ..msg.client_to_server import (Authenticate, Chat, ClientToServerMessage,
                                     Join, Leave, Presence, Quit)
+from .client import Client
 from .server import Server
 
 
 class MessageRouter:
-    def __init__(self, server: Server) -> None:
+    def __init__(self, server: Server, client: Client) -> None:
         self._server = server
+        self._client = client
 
     def route(self, msg: ClientToServerMessage) -> None:
         if isinstance(msg, Authenticate):

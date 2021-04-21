@@ -4,6 +4,7 @@ import pytest
 from gb_chat.common.exceptions import UnsupportedMessageType
 from gb_chat.msg.client_to_server import (Authenticate, Chat, Join, Leave,
                                           Presence, Quit)
+from gb_chat.server.client import Client
 from gb_chat.server.message_router import MessageRouter
 from gb_chat.server.server import Server
 
@@ -14,8 +15,13 @@ def server():
 
 
 @pytest.fixture
-def sut(server):
-    return MessageRouter(server)
+def client():
+    return MagicMock(spec_set=Client)
+
+
+@pytest.fixture
+def sut(server, client):
+    return MessageRouter(server, client)
 
 
 def test_raises_when_unsupported_message_type(sut):
