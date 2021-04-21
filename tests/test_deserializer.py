@@ -2,7 +2,8 @@ from json import JSONDecodeError
 from unittest.mock import MagicMock
 
 import pytest
-from gb_chat.io.deserializer import DeserializationError, Deserializer
+from gb_chat.io.deserializer import Deserializer
+from gb_chat.io.exceptions import DeserializationError
 from gb_chat.io.parsed_msg_handler import ParsedMessageHandler
 
 
@@ -23,7 +24,7 @@ def test_raises_when_decode_error(handler):
         sut.deserialize(b"abc")
 
 
-def test_raises_when_json_error(sut):
+def test_raises_when_json_error():
     loads = MagicMock(side_effect=JSONDecodeError("msg", "doc", 1))
     sut = Deserializer(handler, loads=loads)
     with pytest.raises(DeserializationError):
