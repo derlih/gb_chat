@@ -83,7 +83,12 @@ def main(address: str, port: int) -> None:
     msg_splitter = MessageSplitter(deserializer)
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect((address, port))
+        try:
+            sock.connect((address, port))
+        except ConnectionRefusedError:
+            logger.error("Server unavailable")
+            return
+
         logger.info("Connected to server")
         sock.setblocking(False)
 
