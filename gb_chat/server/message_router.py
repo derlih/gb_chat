@@ -1,8 +1,13 @@
+from typing import Any
+
 from ..common.exceptions import UnsupportedMessageType
+from ..log import get_logger
 from ..msg.client_to_server import (Authenticate, Chat, ClientToServerMessage,
                                     Join, Leave, Presence, Quit)
 from .client import Client
 from .server import Server
+
+_logger: Any = get_logger()
 
 
 class MessageRouter:
@@ -11,6 +16,7 @@ class MessageRouter:
         self._client = client
 
     def route(self, msg: ClientToServerMessage) -> None:
+        _logger.debug("Route message", msg=msg)
         if isinstance(msg, Authenticate):
             self._server.on_auth(msg, self._client)
         elif isinstance(msg, Quit):
