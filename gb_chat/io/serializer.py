@@ -3,7 +3,7 @@ from typing import Callable
 
 from .exceptions import SerializationError
 from .json import JSON
-from .send_buffer import SendBuffer
+from .message_framer import MessageFramer
 from .settings import MSG_ENCODING
 
 Encode = Callable[[str], bytes]
@@ -13,11 +13,11 @@ Dumps = Callable[[JSON], str]
 class Serializer:
     def __init__(
         self,
-        send_buffer: SendBuffer,
+        msg_framer: MessageFramer,
         dumps: Dumps = dumps,
         encode: Encode = lambda x: x.encode(MSG_ENCODING),
     ) -> None:
-        self._send_buffer = send_buffer
+        self._msg_framer = msg_framer
         self._dumps = dumps
         self._encode = encode
 
@@ -28,4 +28,4 @@ class Serializer:
         except (UnicodeError, TypeError, OverflowError, ValueError) as e:
             raise SerializationError() from e
 
-        self._send_buffer.send(msg_bytes)
+        self._msg_framer.frame(msg_bytes)

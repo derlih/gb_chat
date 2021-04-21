@@ -8,3 +8,7 @@ class DeserializationError(ValueError):
 
 class SerializationError(ValueError):
     pass
+
+
+class MessageTooBig(ValueError):
+    pass
