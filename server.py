@@ -14,11 +14,14 @@ from gb_chat.io.parsed_msg_handler import ParsedMessageHandler
 from gb_chat.io.send_buffer import SendBuffer
 from gb_chat.io.serializer import Serializer
 from gb_chat.log import (bind_client_name_to_logger,
-                         bind_remote_address_to_logger, configure_logging)
+                         bind_remote_address_to_logger, configure_logging,
+                         get_logger)
 from gb_chat.server.client import Client
 from gb_chat.server.disconnector import Disconnector
 from gb_chat.server.message_router import MessageRouter
 from gb_chat.server.server import Server
+
+_logger: Any = get_logger()
 
 
 class NothingToRead(Exception):
@@ -47,10 +50,11 @@ class ClientConnection:
         self._client = client
 
     def read(self) -> None:
-
         try:
             while True:
                 data = self._sock.recv(1024)
+                if not data:
+                    raise NothingToRead()
                 if not self._client.disconnector.should_disconnect:
                     self._msg_splitter.feed(data)
         except socket.error as e:
@@ -58,8 +62,6 @@ class ClientConnection:
             if err in (errno.EAGAIN, errno.EWOULDBLOCK):
                 return
 
-            raise NothingToRead() from e
-        except Exception as e:
             raise NothingToRead() from e
 
     def write(self) -> None:
@@ -115,7 +117,7 @@ class SocketHandler:
             self._sel.register(
                 sock, selectors.EVENT_READ | selectors.EVENT_WRITE, self._process_sock_event  # type: ignore
             )
-            structlog.get_logger().info("New client connected")
+            _logger.info("New client connected")
 
     def run(self) -> None:
         while True:
@@ -158,6 +160,7 @@ class SocketHandler:
             sock = client_connection.socket
             with bind_remote_address_to_logger(sock):
                 with bind_client_name_to_logger(client_connection.client.name):
+                    _logger.info("Client disconnected")
                     self._sel.unregister(sock)
                     sock.close()
                     self._server.on_client_disconnected(self._clients[sock].client)
@@ -181,7 +184,7 @@ class SocketHandler:
 @click.option("-p", "--port", type=click.IntRange(1, 65535), default=7777)
 def main(address: str, port: int) -> None:
     configure_logging(structlog.dev.ConsoleRenderer(colors=False))
-    logger = structlog.get_logger(address=address, port=port)
+    logger = _logger.bind(address=address, port=port)
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_sock:
         server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
