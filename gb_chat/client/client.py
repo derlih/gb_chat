@@ -1,8 +1,10 @@
 from typing import Any
 
+from gb_chat.msg.status import Status
+
 from ..io.message_sender import MessageSender
 from ..log import get_logger
-from ..msg.client_to_server import Authenticate
+from ..msg.client_to_server import Authenticate, Presence
 from ..msg.server_to_client import Probe, Response
 
 _logger: Any = get_logger()
@@ -25,4 +27,4 @@ class Client:
         _logger.debug("Probe received")
 
     def _handle_auth_response(self, msg: Response) -> None:
-        pass
+        self._msg_sender.send(Presence(Status.ONLINE))
