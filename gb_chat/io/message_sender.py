@@ -6,7 +6,8 @@ from ..log import get_logger
 from ..msg.client_to_server import (Authenticate, ChatFromClient,
                                     ClientToServerMessage, Join, Leave,
                                     Presence, Quit)
-from ..msg.server_to_client import Probe, Response, ServerToClientMessage
+from ..msg.server_to_client import (ChatToClient, Probe, Response,
+                                    ServerToClientMessage)
 from .json import JSON
 from .serializer import Serializer
 
@@ -36,6 +37,8 @@ class MessageSender:
             return {"response": msg.code, "message": msg.msg}
         elif isinstance(msg, Probe):
             return {"action": "probe"}
+        elif isinstance(msg, ChatToClient):
+            return {"action": "msg", "from": msg.sender, "message": msg.message}
         elif isinstance(msg, Authenticate):
             return {
                 "action": "authenticate",

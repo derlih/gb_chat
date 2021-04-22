@@ -14,4 +14,10 @@ class Probe:
     pass
 
 
-ServerToClientMessage = Union[Response, Probe]
+@dataclass(frozen=True)
+class ChatToClient:
+    sender: str
+    message: str
+
+
+ServerToClientMessage = Union[Response, Probe, ChatToClient]

@@ -9,7 +9,7 @@ from gb_chat.io.parsed_msg_handler import ParsedMessageHandler
 from gb_chat.io.serializer import Serializer
 from gb_chat.msg.client_to_server import (Authenticate, ChatFromClient, Join,
                                           Leave, Presence, Quit)
-from gb_chat.msg.server_to_client import Probe, Response
+from gb_chat.msg.server_to_client import ChatToClient, Probe, Response
 from gb_chat.msg.status import Status
 from gb_chat.server.message_router import MessageRouter as ServerMessageRouter
 
@@ -39,6 +39,10 @@ test_data_server_to_client = [
         {"response": 200, "message": "message text", "time": 123},
     ),
     (Probe(), {"action": "probe", "time": 123}),
+    (
+        ChatToClient("sender", "message text"),
+        {"action": "msg", "time": 123, "from": "sender", "message": "message text"},
+    ),
 ]
 
 
@@ -81,6 +85,7 @@ def test_convert_incomming_client_dict_to_msg(expected, msg_dict):
         ({"action": "foo"}, MagicMock(spec_set=ServerMessageRouter)),
         ({"a": "b"}, MagicMock(spec_set=ServerMessageRouter)),
         ({"a": "b"}, MagicMock(spec_set=ClientMessageRouter)),
+        ({"action": "foo"}, MagicMock(spec_set=ClientMessageRouter)),
     ],
 )
 def test_process_raises_when_unsupported_msg(msg, router):

@@ -6,7 +6,7 @@ from ..common.exceptions import UnsupportedMessageType
 from ..log import get_logger
 from ..msg.client_to_server import (Authenticate, ChatFromClient, Join, Leave,
                                     Presence, Quit)
-from ..msg.server_to_client import Probe, Response
+from ..msg.server_to_client import ChatToClient, Probe, Response
 from ..msg.status import Status
 from ..server.message_router import MessageRouter as ServerMessageRouter
 from .json import JSON
@@ -56,8 +56,13 @@ class ParsedMessageHandler:
     def _process_incomming_client_msg(self, msg: JSON) -> None:
         router = cast(ClientMessageRouter, self._msg_router)
         if "action" in msg:
-            if msg["action"] == "probe":
+            action = msg["action"]
+            if action == "probe":
                 router.route(Probe())
+            elif action == "msg":
+                router.route(ChatToClient(msg["from"], msg["message"]))
+            else:
+                raise UnsupportedMessageType(f"Unsupported msg action {action}")
         elif "response" in msg:
             router.route(Response(HTTPStatus(msg["response"]), msg["message"]))
         else:
