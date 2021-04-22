@@ -2,8 +2,8 @@ from http import HTTPStatus
 from typing import Any, Dict, List
 
 from ..log import get_logger
-from ..msg.client_to_server import (Authenticate, Chat, Join, Leave, Presence,
-                                    Quit)
+from ..msg.client_to_server import (Authenticate, ChatFromClient, Join, Leave,
+                                    Presence, Quit)
 from ..msg.server_to_client import Probe, Response
 from .client import Client
 
@@ -35,17 +35,19 @@ class Server:
             return
 
     def on_auth(self, msg: Authenticate, from_client: Client) -> None:
+        _logger.debug("Auth received")
         from_client.name = msg.login
         self._auth_clients[msg.login] = from_client
         from_client.msg_sender.send(Response(HTTPStatus.OK, "Login successful"))
 
     def on_quit(self, msg: Quit, from_client: Client) -> None:
-        pass
+        _logger.debug("Quit received")
+        from_client.disconnector.disconnect()
 
     def on_presense(self, msg: Presence, from_client: Client) -> None:
-        pass
+        _logger.info("Set presence", presence=msg.status.value)
 
-    def on_chat(self, msg: Chat, from_client: Client) -> None:
+    def on_chat(self, msg: ChatFromClient, from_client: Client) -> None:
         pass
 
     def on_join(self, msg: Join, from_client: Client) -> None:

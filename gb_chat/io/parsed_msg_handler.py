@@ -4,8 +4,8 @@ from typing import Any, Optional, Union, cast
 from ..client.message_router import MessageRouter as ClientMessageRouter
 from ..common.exceptions import UnsupportedMessageType
 from ..log import get_logger
-from ..msg.client_to_server import (Authenticate, Chat, Join, Leave, Presence,
-                                    Quit)
+from ..msg.client_to_server import (Authenticate, ChatFromClient, Join, Leave,
+                                    Presence, Quit)
 from ..msg.server_to_client import Probe, Response
 from ..msg.status import Status
 from ..server.message_router import MessageRouter as ServerMessageRouter
@@ -45,7 +45,7 @@ class ParsedMessageHandler:
                 status = Status(msg["status"])
             router.route(Presence(status))
         elif action == "msg":
-            router.route(Chat(msg["to"], msg["message"]))
+            router.route(ChatFromClient(msg["to"], msg["message"]))
         elif action == "join":
             router.route(Join(msg["room"]))
         elif action == "leave":

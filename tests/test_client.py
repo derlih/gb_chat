@@ -6,8 +6,8 @@ from gb_chat.client.client import Client
 from gb_chat.common.exceptions import InvalidRoomName
 from gb_chat.common.room_name_validator import RoomNameValidator
 from gb_chat.io.message_sender import MessageSender
-from gb_chat.msg.client_to_server import (Authenticate, Chat, Join, Leave,
-                                          Presence, Quit)
+from gb_chat.msg.client_to_server import (Authenticate, ChatFromClient, Join,
+                                          Leave, Presence, Quit)
 from gb_chat.msg.server_to_client import Response
 from gb_chat.msg.status import Status
 
@@ -55,7 +55,7 @@ def sut_logged_in(sut_login_sent, msg_sender):
 
 def test_send_msg_when_logged_in(sut_logged_in, msg_sender):
     sut_logged_in.send_msg("to_user", "message text")
-    msg_sender.send.assert_called_once_with(Chat("to_user", "message text"))
+    msg_sender.send.assert_called_once_with(ChatFromClient("to_user", "message text"))
 
 
 def test_join_room_when_logged_in(sut_logged_in, msg_sender, room_name_validator):

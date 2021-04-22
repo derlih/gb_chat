@@ -2,8 +2,9 @@ from typing import Any
 
 from ..common.exceptions import UnsupportedMessageType
 from ..log import get_logger
-from ..msg.client_to_server import (Authenticate, Chat, ClientToServerMessage,
-                                    Join, Leave, Presence, Quit)
+from ..msg.client_to_server import (Authenticate, ChatFromClient,
+                                    ClientToServerMessage, Join, Leave,
+                                    Presence, Quit)
 from .client import Client
 from .server import Server
 
@@ -23,7 +24,7 @@ class MessageRouter:
             self._server.on_quit(msg, self._client)
         elif isinstance(msg, Presence):
             self._server.on_presense(msg, self._client)
-        elif isinstance(msg, Chat):
+        elif isinstance(msg, ChatFromClient):
             self._server.on_chat(msg, self._client)
         elif isinstance(msg, Join):
             self._server.on_join(msg, self._client)

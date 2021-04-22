@@ -7,8 +7,8 @@ from gb_chat.common.exceptions import InvalidRoomName
 from ..common.room_name_validator import RoomNameValidator
 from ..io.message_sender import MessageSender
 from ..log import get_logger
-from ..msg.client_to_server import (Authenticate, Chat, Join, Leave, Presence,
-                                    Quit)
+from ..msg.client_to_server import (Authenticate, ChatFromClient, Join, Leave,
+                                    Presence, Quit)
 from ..msg.server_to_client import Probe, Response
 from ..msg.status import Status
 
@@ -43,7 +43,7 @@ class Client:
             return
 
         _logger.info("Send chat message", to=to_user, msg=msg)
-        self._msg_sender.send(Chat(to_user, msg))
+        self._msg_sender.send(ChatFromClient(to_user, msg))
 
     def join_room(self, room: str) -> None:
         if self._state != _State.LOGGED_IN:

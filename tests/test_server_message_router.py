@@ -2,8 +2,8 @@ from unittest.mock import MagicMock
 
 import pytest
 from gb_chat.common.exceptions import UnsupportedMessageType
-from gb_chat.msg.client_to_server import (Authenticate, Chat, Join, Leave,
-                                          Presence, Quit)
+from gb_chat.msg.client_to_server import (Authenticate, ChatFromClient, Join,
+                                          Leave, Presence, Quit)
 from gb_chat.server.client import Client
 from gb_chat.server.message_router import MessageRouter
 from gb_chat.server.server import Server
@@ -48,7 +48,7 @@ def test_route_presense(sut, server, client):
 
 
 def test_route_chat(sut, server, client):
-    msg = MagicMock(spec=Chat)
+    msg = MagicMock(spec=ChatFromClient)
     sut.route(msg)
     server.on_chat.assert_called_once_with(msg, client)
 

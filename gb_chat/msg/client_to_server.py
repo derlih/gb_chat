@@ -21,7 +21,7 @@ class Presence:
 
 
 @dataclass(frozen=True)
-class Chat:
+class ChatFromClient:
     to: str
     message: str
 
@@ -36,4 +36,4 @@ class Leave:
     room: str
 
 
-ClientToServerMessage = Union[Authenticate, Quit, Presence, Chat, Join, Leave]
+ClientToServerMessage = Union[Authenticate, Quit, Presence, ChatFromClient, Join, Leave]

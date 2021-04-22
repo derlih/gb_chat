@@ -3,9 +3,8 @@ from typing import Any, Callable, Union
 
 from ..common.exceptions import UnsupportedMessageType
 from ..log import get_logger
-from ..msg.client_to_server import Authenticate
-from ..msg.client_to_server import Chat as ClientToServerChat
-from ..msg.client_to_server import (ClientToServerMessage, Join, Leave,
+from ..msg.client_to_server import (Authenticate, ChatFromClient,
+                                    ClientToServerMessage, Join, Leave,
                                     Presence, Quit)
 from ..msg.server_to_client import Probe, Response, ServerToClientMessage
 from .json import JSON
@@ -49,7 +48,7 @@ class MessageSender:
             if msg.status:
                 res["status"] = msg.status.value
             return res
-        elif isinstance(msg, ClientToServerChat):
+        elif isinstance(msg, ChatFromClient):
             return {"action": "msg", "to": msg.to, "message": msg.message}
         elif isinstance(msg, Join):
             return {"action": "join", "room": msg.room}
