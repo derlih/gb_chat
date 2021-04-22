@@ -3,8 +3,8 @@ from unittest.mock import MagicMock
 
 import pytest
 from gb_chat.io.message_sender import MessageSender
-from gb_chat.msg.client_to_server import Authenticate, Quit
-from gb_chat.msg.server_to_client import Probe, Response
+from gb_chat.msg.client_to_server import Authenticate, ChatFromClient, Quit
+from gb_chat.msg.server_to_client import ChatToClient, Probe, Response
 from gb_chat.server.client import Client
 from gb_chat.server.disconnector import Disconnector
 from gb_chat.server.server import Server
@@ -66,3 +66,45 @@ def test_not_send_probes_when_not_authed(sut_with_authed_client, client):
 def test_disconnect_client_on_quit_msg(sut_with_client, client):
     sut_with_client.on_quit(Quit(), client)
     client.disconnector.disconnect.assert_called_once_with()
+
+
+def test_on_chat_ignores_msg_from_not_authed(sut_with_client, client):
+    sut_with_client.on_chat(ChatFromClient("username", "msg"), client)
+
+
+def test_on_chat_ignores_msg_to_self(sut_with_authed_client, client):
+    sut_with_authed_client.on_chat(ChatFromClient(client.name, "msg"), client)
+    client.msg_sender.send.assert_not_called()
+
+
+@pytest.fixture
+def client2():
+    return Client(MagicMock(spec_set=MessageSender), MagicMock(spec_set=Disconnector))
+
+
+@pytest.fixture
+def sut_with_client2(sut_with_authed_client, client2):
+    sut_with_authed_client.on_client_connected(client2)
+    return sut_with_authed_client
+
+
+def test_on_chat_ignores_msg_to_not_authed(sut_with_client2, client, client2):
+    sut_with_client2.on_chat(ChatFromClient("to name", "msg"), client)
+    client2.msg_sender.send.assert_not_called()
+
+
+@pytest.fixture
+def sut_with_two_authed_clients(sut_with_client2, client2):
+    sut_with_client2.on_auth(Authenticate("username2", "password"), client2)
+    assert client2.name == "username2"
+    client2.msg_sender.send.reset_mock()
+    return sut_with_client2
+
+
+def test_on_chat_send_message_to_client(sut_with_two_authed_clients, client, client2):
+    sut_with_two_authed_clients.on_chat(
+        ChatFromClient(client2.name, "message text"), client
+    )
+    client2.msg_sender.send.assert_called_once_with(
+        ChatToClient(client.name, "message text")
+    )

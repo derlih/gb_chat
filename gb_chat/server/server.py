@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 from ..log import get_logger
 from ..msg.client_to_server import (Authenticate, ChatFromClient, Join, Leave,
                                     Presence, Quit)
-from ..msg.server_to_client import Probe, Response
+from ..msg.server_to_client import ChatToClient, Probe, Response
 from .client import Client
 
 _logger: Any = get_logger()
@@ -48,7 +48,20 @@ class Server:
         _logger.info("Set presence", presence=msg.status.value)
 
     def on_chat(self, msg: ChatFromClient, from_client: Client) -> None:
-        pass
+        if not from_client.name:
+            _logger.warning("Chat message from not authed client", to=msg.to)
+            return
+
+        if msg.to not in self._auth_clients:
+            _logger.warning("Chat message for not authed client", to=msg.to)
+            return
+
+        if from_client.name == msg.to:
+            _logger.warning("Chat message for self", to=msg.to)
+            return
+
+        to_client = self._auth_clients[msg.to]
+        to_client.msg_sender.send(ChatToClient(from_client.name, msg.message))
 
     def on_join(self, msg: Join, from_client: Client) -> None:
         pass
