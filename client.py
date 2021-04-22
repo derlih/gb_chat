@@ -10,6 +10,7 @@ import structlog
 from gb_chat.client.client import Client
 from gb_chat.client.message_router import MessageRouter
 from gb_chat.common.exceptions import NothingToRead, UnableToWrite
+from gb_chat.common.room_name_validator import RoomNameValidator
 from gb_chat.common.thread_executor import IoThreadExecutor
 from gb_chat.io.deserializer import Deserializer
 from gb_chat.io.message_framer import MessageFramer
@@ -110,7 +111,7 @@ def main(address: str, port: int, username: str, password: str) -> None:
         msg_framer = MessageFramer(send_buffer)
         serializer = Serializer(msg_framer)
         msg_sender = MessageSender(serializer)
-        client = Client(msg_sender)
+        client = Client(msg_sender, RoomNameValidator())
         msg_router = MessageRouter(client)
         parsed_msg_handler = ParsedMessageHandler(msg_router)
         deserializer = Deserializer(parsed_msg_handler)
@@ -131,36 +132,38 @@ def main(address: str, port: int, username: str, password: str) -> None:
                 event,
             ),
         )
-        thread.start()
-        io_thread_executor.schedule(lambda: client.login(username, password))
+        try:
+            thread.start()
+            io_thread_executor.schedule(lambda: client.login(username, password))
 
-        while True:
-            print(
-                "Enter command:\n"
-                "m - send message\n"
-                "j - join room\n"
-                "l - leave room\n"
-                "q - exit\n"
-            )
-            cmd = input("CMD: ")
-            if not cmd:
-                continue
-            elif cmd.startswith("m"):
-                to = input("To: ")
-                msg = input("Message: ")
-                client.send_msg(to, msg)
-            elif cmd.startswith("j"):
-                room = input("Room: ")
-                client.join_room(room)
-            elif cmd.startswith("l"):
-                room = input("Room: ")
-                client.leave_room(room)
-                pass
-            else:
-                break
-
-        event.set()
-        thread.join()
+            while True:
+                print(
+                    "Enter command:\n"
+                    "m - send message\n"
+                    "j - join room\n"
+                    "l - leave room\n"
+                    "q - exit\n"
+                )
+                cmd = input("CMD: ")
+                if not cmd:
+                    continue
+                elif cmd.startswith("m"):
+                    to = input("To: ")
+                    msg = input("Message: ")
+                    client.send_msg(to, msg)
+                elif cmd.startswith("j"):
+                    room = input("Room: ")
+                    client.join_room(room)
+                elif cmd.startswith("l"):
+                    room = input("Room: ")
+                    client.leave_room(room)
+                else:
+                    break
+        except KeyboardInterrupt:
+            pass
+        finally:
+            event.set()
+            thread.join()
 
 
 if __name__ == "__main__":

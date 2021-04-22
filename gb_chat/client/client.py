@@ -9,7 +9,7 @@ from ..io.message_sender import MessageSender
 from ..log import get_logger
 from ..msg.client_to_server import (Authenticate, ChatFromClient, Join, Leave,
                                     Presence, Quit)
-from ..msg.server_to_client import Probe, Response
+from ..msg.server_to_client import ChatToClient, Probe, Response
 from ..msg.status import Status
 
 _logger: Any = get_logger()
@@ -78,6 +78,9 @@ class Client:
 
     def on_probe(self, msg: Probe) -> None:
         _logger.debug("Probe received")
+
+    def on_chat(self, msg: ChatToClient) -> None:
+        _logger.info("Chat received", from_user=msg.sender, msg=msg.message)
 
     def _handle_auth_response(self, msg: Response) -> None:
         if msg.code == HTTPStatus.OK:

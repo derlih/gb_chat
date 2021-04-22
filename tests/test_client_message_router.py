@@ -4,7 +4,7 @@ import pytest
 from gb_chat.client.client import Client
 from gb_chat.client.message_router import MessageRouter
 from gb_chat.common.exceptions import UnsupportedMessageType
-from gb_chat.msg.server_to_client import Probe, Response
+from gb_chat.msg.server_to_client import ChatToClient, Probe, Response
 
 
 @pytest.fixture
@@ -32,3 +32,9 @@ def test_route_probe(sut, client):
     msg = MagicMock(spec=Probe)
     sut.route(msg)
     client.on_probe.assert_called_once_with(msg)
+
+
+def test_route_probe(sut, client):
+    msg = MagicMock(spec=ChatToClient)
+    sut.route(msg)
+    client.on_chat.assert_called_once_with(msg)
