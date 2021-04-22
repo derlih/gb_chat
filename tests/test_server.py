@@ -4,8 +4,10 @@ from unittest.mock import MagicMock
 import pytest
 from gb_chat.common.room_name_validator import RoomNameValidator
 from gb_chat.io.message_sender import MessageSender
-from gb_chat.msg.client_to_server import Authenticate, ChatFromClient, Quit
+from gb_chat.msg.client_to_server import (Authenticate, ChatFromClient,
+                                          Presence, Quit)
 from gb_chat.msg.server_to_client import ChatToClient, Probe, Response
+from gb_chat.msg.status import Status
 from gb_chat.server.client import Client
 from gb_chat.server.disconnector import Disconnector
 from gb_chat.server.server import Server
@@ -82,6 +84,16 @@ def test_on_chat_disconnect_on_msg_from_not_authed(sut_with_client, client):
 def test_on_chat_ignores_msg_to_self(sut_with_authed_client, client):
     sut_with_authed_client.on_chat(ChatFromClient(client.name, "msg"), client)
     client.msg_sender.send.assert_not_called()
+
+
+def test_on_presense_disconnect_on_msg_from_not_auth(sut_with_client, client):
+    sut_with_client.on_presense(Presence(Status.ONLINE), client)
+    client.disconnector.disconnect.assert_called_once()
+
+
+def test_on_presense(sut_with_authed_client, client):
+    sut_with_authed_client.on_presense(Presence(Status.ONLINE), client)
+    client.disconnector.disconnect.assert_not_called()
 
 
 @pytest.fixture
