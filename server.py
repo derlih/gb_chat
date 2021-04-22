@@ -8,7 +8,8 @@ from typing import Any, Dict, List
 import click
 import structlog
 
-from gb_chat.common.thread_executor import IoThreadExecutor, ThreadExecutor
+from gb_chat.common.exceptions import NothingToRead, UnableToWrite
+from gb_chat.common.thread_executor import IoThreadExecutor
 from gb_chat.io.deserializer import Deserializer
 from gb_chat.io.message_framer import MessageFramer
 from gb_chat.io.message_sender import MessageSender
@@ -25,14 +26,6 @@ from gb_chat.server.message_router import MessageRouter
 from gb_chat.server.server import Server
 
 _logger: Any = get_logger()
-
-
-class NothingToRead(Exception):
-    pass
-
-
-class UnableToWrite(Exception):
-    pass
 
 
 class StopProcessing(Exception):
@@ -95,7 +88,7 @@ class SocketHandler:
         self,
         sel: selectors.BaseSelector,
         server: Server,
-        io_thread_executor: ThreadExecutor,
+        io_thread_executor: IoThreadExecutor,
     ) -> None:
         self._sel = sel
         self._server = server
@@ -137,7 +130,7 @@ class SocketHandler:
     def _process_io_events(self) -> None:
         events: List[Any] = []
         try:
-            events = self._sel.select(0)
+            events = self._sel.select(0.1)
 
             for key, mask in events:
                 callback = key.data
