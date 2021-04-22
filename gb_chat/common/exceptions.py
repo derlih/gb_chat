@@ -8,3 +8,7 @@ class NothingToRead(Exception):
 
 class UnableToWrite(Exception):
     pass
+
+
+class InvalidRoomName(ValueError):
+    pass
