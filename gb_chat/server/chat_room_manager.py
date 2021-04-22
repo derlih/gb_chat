@@ -3,6 +3,7 @@ from typing import Any, Callable, Dict
 from ..common.exceptions import InvalidRoomName
 from ..common.room_name_validator import RoomNameValidator
 from ..log import get_logger
+from ..msg.client_to_server import ChatFromClient
 from .chat_room import ChatRoom
 from .client import Client
 
@@ -51,3 +52,12 @@ class ChatRoomManager:
     def leave_all(self, client: Client) -> None:
         for room_name in [*self._rooms.keys()]:
             self.leave(room_name, client, False)
+
+    def send_message(self, msg: ChatFromClient, from_client: Client) -> None:
+        if msg.to not in self._rooms:
+            return
+
+        _logger.info(
+            "User sends group message", room=msg.to, from_client=from_client.name
+        )
+        self._rooms[msg.to].send_message(msg, from_client)
