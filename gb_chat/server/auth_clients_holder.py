@@ -1,9 +1,8 @@
 from functools import partial, wraps
 from typing import Any, Callable, Dict, Optional, Union, ValuesView
 
-from gb_chat.msg.client_to_server import ClientToServerMessage
-
 from ..log import get_logger
+from ..msg.client_to_server import ClientToServerMessage
 from .client import Client
 
 _logger: Any = get_logger()

@@ -2,8 +2,7 @@ from enum import Enum, auto
 from http import HTTPStatus
 from typing import Any
 
-from gb_chat.common.exceptions import InvalidRoomName
-
+from ..common.exceptions import InvalidRoomName
 from ..common.room_name_validator import RoomNameValidator
 from ..io.message_sender import MessageSender
 from ..log import get_logger
