@@ -23,7 +23,7 @@ class MessageRouter:
         elif isinstance(msg, Quit):
             self._server.on_quit(msg, self._client)
         elif isinstance(msg, Presence):
-            self._server.on_presense(msg, self._client)
+            self._server.on_presence(msg, self._client)
         elif isinstance(msg, ChatFromClient):
             self._server.on_chat(msg, self._client)
         elif isinstance(msg, Join):

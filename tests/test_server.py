@@ -86,13 +86,13 @@ def test_on_chat_ignores_msg_to_self(sut_with_authed_client, client):
     client.msg_sender.send.assert_not_called()
 
 
-def test_on_presense_disconnect_on_msg_from_not_auth(sut_with_client, client):
-    sut_with_client.on_presense(Presence(Status.ONLINE), client)
+def test_on_presence_disconnect_on_msg_from_not_auth(sut_with_client, client):
+    sut_with_client.on_presence(Presence(Status.ONLINE), client)
     client.disconnector.disconnect.assert_called_once()
 
 
-def test_on_presense(sut_with_authed_client, client):
-    sut_with_authed_client.on_presense(Presence(Status.ONLINE), client)
+def test_on_presence(sut_with_authed_client, client):
+    sut_with_authed_client.on_presence(Presence(Status.ONLINE), client)
     client.disconnector.disconnect.assert_not_called()
 
 

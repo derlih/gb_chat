@@ -41,10 +41,10 @@ def test_route_quit(sut, server, client):
     server.on_quit.assert_called_once_with(msg, client)
 
 
-def test_route_presense(sut, server, client):
+def test_route_presence(sut, server, client):
     msg = MagicMock(spec=Presence)
     sut.route(msg)
-    server.on_presense.assert_called_once_with(msg, client)
+    server.on_presence.assert_called_once_with(msg, client)
 
 
 def test_route_chat(sut, server, client):

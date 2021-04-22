@@ -45,7 +45,7 @@ class Server:
         from_client.disconnector.disconnect()
 
     @auth.required
-    def on_presense(self, msg: Presence, from_client: Client) -> None:
+    def on_presence(self, msg: Presence, from_client: Client) -> None:
         _logger.info("Set presence", presence=msg.status.value)
 
     @auth.required
