@@ -66,6 +66,11 @@ def mainloop(
 
         io_thread_executor.execute_all()
 
+    while send_buffer.data:
+        _, w, _ = select.select([], [sock], [], 0)
+        if w:
+            write_data(sock, send_buffer)
+
 
 def io_thread(
     sock: socket.socket,
@@ -158,6 +163,7 @@ def main(address: str, port: int, username: str, password: str) -> None:
                     room = input("Room: ")
                     client.leave_room(room)
                 else:
+                    client.quit()
                     break
         except KeyboardInterrupt:
             pass
