@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from typing import Any, Dict, List
 
+from ..common.room_name_validator import RoomNameValidator
 from ..log import get_logger
 from ..msg.client_to_server import (Authenticate, ChatFromClient, Join, Leave,
                                     Presence, Quit)
@@ -11,7 +12,8 @@ _logger: Any = get_logger()
 
 
 class Server:
-    def __init__(self) -> None:
+    def __init__(self, room_name_validator: RoomNameValidator) -> None:
+        self._room_name_validator = room_name_validator
         self._clients: List[Client] = []
         self._auth_clients: Dict[str, Client] = {}
 
@@ -50,6 +52,7 @@ class Server:
     def on_chat(self, msg: ChatFromClient, from_client: Client) -> None:
         if not from_client.name:
             _logger.warning("Chat message from not authed client", to=msg.to)
+            from_client.disconnector.disconnect()
             return
 
         if msg.to not in self._auth_clients:

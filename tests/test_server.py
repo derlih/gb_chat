@@ -2,6 +2,7 @@ from http import HTTPStatus
 from unittest.mock import MagicMock
 
 import pytest
+from gb_chat.common.room_name_validator import RoomNameValidator
 from gb_chat.io.message_sender import MessageSender
 from gb_chat.msg.client_to_server import Authenticate, ChatFromClient, Quit
 from gb_chat.msg.server_to_client import ChatToClient, Probe, Response
@@ -16,8 +17,13 @@ def client():
 
 
 @pytest.fixture
-def sut():
-    return Server()
+def room_name_validator():
+    return MagicMock(spec_set=RoomNameValidator)
+
+
+@pytest.fixture
+def sut(room_name_validator):
+    return Server(room_name_validator)
 
 
 def test_client_connected(sut, client):
@@ -68,8 +74,9 @@ def test_disconnect_client_on_quit_msg(sut_with_client, client):
     client.disconnector.disconnect.assert_called_once_with()
 
 
-def test_on_chat_ignores_msg_from_not_authed(sut_with_client, client):
+def test_on_chat_disconnect_on_msg_from_not_authed(sut_with_client, client):
     sut_with_client.on_chat(ChatFromClient("username", "msg"), client)
+    client.disconnector.disconnect.assert_called_once()
 
 
 def test_on_chat_ignores_msg_to_self(sut_with_authed_client, client):
