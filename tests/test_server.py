@@ -2,7 +2,6 @@ from http import HTTPStatus
 from unittest.mock import MagicMock
 
 import pytest
-from gb_chat.common.room_name_validator import RoomNameValidator
 from gb_chat.io.message_sender import MessageSender
 from gb_chat.msg.client_to_server import (Authenticate, ChatFromClient,
                                           Presence, Quit)
@@ -19,13 +18,8 @@ def client():
 
 
 @pytest.fixture
-def room_name_validator():
-    return MagicMock(spec_set=RoomNameValidator)
-
-
-@pytest.fixture
-def sut(room_name_validator):
-    return Server(room_name_validator)
+def sut():
+    return Server()
 
 
 def test_client_connected(sut, client):

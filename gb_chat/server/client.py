@@ -11,3 +11,6 @@ class Client:
     disconnector: Disconnector
 
     name: Optional[str] = None
+
+    def __hash__(self) -> int:
+        return hash(self.msg_sender)

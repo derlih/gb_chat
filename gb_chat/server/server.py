@@ -15,8 +15,7 @@ _logger: Any = get_logger()
 class Server:
     auth = AuthClientsHolder()
 
-    def __init__(self, room_name_validator: RoomNameValidator) -> None:
-        self._room_name_validator = room_name_validator
+    def __init__(self) -> None:
         self._clients: List[Client] = []
 
     def send_probes(self) -> None:
