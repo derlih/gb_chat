@@ -6,20 +6,22 @@ from ..log import get_logger
 from ..msg.client_to_server import (Authenticate, ChatFromClient, Join, Leave,
                                     Presence, Quit)
 from ..msg.server_to_client import ChatToClient, Probe, Response
+from .auth_clients_holder import AuthClientsHolder
 from .client import Client
 
 _logger: Any = get_logger()
 
 
 class Server:
+    auth = AuthClientsHolder()
+
     def __init__(self, room_name_validator: RoomNameValidator) -> None:
         self._room_name_validator = room_name_validator
         self._clients: List[Client] = []
-        self._auth_clients: Dict[str, Client] = {}
 
     def send_probes(self) -> None:
         _logger.debug("Send probes")
-        for _, client in self._auth_clients.items():
+        for client in self.auth.all:
             client.msg_sender.send(Probe())
 
     def on_client_connected(self, client: Client) -> None:
@@ -29,33 +31,27 @@ class Server:
     def on_client_disconnected(self, client: Client) -> None:
         _logger.info("Client disconnected")
         self._clients.remove(client)
-        for name, auth_client in self._auth_clients.items():
-            if auth_client is not client:
-                continue
-
-            del self._auth_clients[name]
-            return
+        if self.auth.is_authed(client):
+            self.auth.remove_client(client)
 
     def on_auth(self, msg: Authenticate, from_client: Client) -> None:
         _logger.debug("Auth received")
         from_client.name = msg.login
-        self._auth_clients[msg.login] = from_client
+        self.auth.add_client(from_client)
         from_client.msg_sender.send(Response(HTTPStatus.OK, "Login successful"))
 
     def on_quit(self, msg: Quit, from_client: Client) -> None:
         _logger.debug("Quit received")
         from_client.disconnector.disconnect()
 
+    @auth.required
     def on_presense(self, msg: Presence, from_client: Client) -> None:
         _logger.info("Set presence", presence=msg.status.value)
 
+    @auth.required
     def on_chat(self, msg: ChatFromClient, from_client: Client) -> None:
-        if not from_client.name:
-            _logger.warning("Chat message from not authed client", to=msg.to)
-            from_client.disconnector.disconnect()
-            return
-
-        if msg.to not in self._auth_clients:
+        to_client = self.auth.find_client(msg.to)
+        if to_client is None:
             _logger.warning("Chat message for not authed client", to=msg.to)
             return
 
@@ -63,11 +59,12 @@ class Server:
             _logger.warning("Chat message for self", to=msg.to)
             return
 
-        to_client = self._auth_clients[msg.to]
         to_client.msg_sender.send(ChatToClient(from_client.name, msg.message))
 
+    @auth.required
     def on_join(self, msg: Join, from_client: Client) -> None:
         pass
 
+    @auth.required
     def on_leave(self, msg: Leave, from_client: Client) -> None:
         pass
