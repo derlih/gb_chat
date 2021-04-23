@@ -10,6 +10,7 @@ import structlog
 
 from gb_chat.client.client import Client
 from gb_chat.client.message_router import MessageRouter
+from gb_chat.common.disconnector import Disconnector
 from gb_chat.common.exceptions import NothingToRead, UnableToWrite
 from gb_chat.common.room_name_validator import RoomNameValidator
 from gb_chat.common.thread_executor import IoThreadExecutor
@@ -55,10 +56,11 @@ def mainloop(
     sock: socket.socket,
     send_buffer: SendBuffer,
     msg_splitter: MessageSplitter,
+    disconnector: Disconnector,
     io_thread_executor: IoThreadExecutor,
     event: threading.Event,
 ) -> None:
-    while not event.is_set():
+    while not event.is_set() or not disconnector.should_disconnect:
         r, w, _ = select.select([sock], [sock], [], 0.1)
         if r:
             read_data(sock, msg_splitter)
@@ -77,12 +79,15 @@ def io_thread(
     sock: socket.socket,
     send_buffer: SendBuffer,
     msg_splitter: MessageSplitter,
+    disconnector: Disconnector,
     logger: Any,
     io_thread_executor: IoThreadExecutor,
     event: threading.Event,
 ) -> None:
     try:
-        mainloop(sock, send_buffer, msg_splitter, io_thread_executor, event)
+        mainloop(
+            sock, send_buffer, msg_splitter, disconnector, io_thread_executor, event
+        )
     except (KeyboardInterrupt, NothingToRead, UnableToWrite):
         pass
     except Exception:
@@ -119,7 +124,8 @@ def main(address: str, port: int, username: str, password: str, verbose: bool) -
         msg_framer = MessageFramer(send_buffer)
         serializer = Serializer(msg_framer)
         msg_sender = MessageSender(serializer)
-        client = Client(msg_sender, RoomNameValidator())
+        disconnector = Disconnector()
+        client = Client(msg_sender, RoomNameValidator(), disconnector)
         msg_router = MessageRouter(client)
         parsed_msg_handler = ParsedMessageHandler(msg_router)
         deserializer = Deserializer(parsed_msg_handler)
@@ -130,14 +136,20 @@ def main(address: str, port: int, username: str, password: str, verbose: bool) -
         thread = threading.Thread(
             name="io",
             target=lambda: io_thread(
-                sock, send_buffer, msg_splitter, logger, io_thread_executor, event,
+                sock,
+                send_buffer,
+                msg_splitter,
+                disconnector,
+                logger,
+                io_thread_executor,
+                event,
             ),
         )
         try:
             thread.start()
             io_thread_executor.schedule(lambda: client.login(username, password))
 
-            while True:
+            while not disconnector.should_disconnect:
                 print(
                     "Enter command:\n"
                     "m - send message\n"

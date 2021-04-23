@@ -2,6 +2,7 @@ from enum import Enum, auto
 from http import HTTPStatus, client
 from typing import Any
 
+from ..common.disconnector import Disconnector
 from ..common.exceptions import InvalidRoomName
 from ..common.room_name_validator import RoomNameValidator
 from ..io.message_sender import MessageSender
@@ -23,11 +24,15 @@ class _State(Enum):
 
 class Client:
     def __init__(
-        self, msg_sender: MessageSender, room_name_validator: RoomNameValidator
+        self,
+        msg_sender: MessageSender,
+        room_name_validator: RoomNameValidator,
+        disconnector: Disconnector,
     ) -> None:
         self._msg_sender = msg_sender
-        self._state: _State = _State.START
         self._room_name_validator = room_name_validator
+        self._disconnector = disconnector
+        self._state: _State = _State.START
 
     def login(self, username: str, password: str) -> None:
         if self._state != _State.START:
@@ -95,3 +100,4 @@ class Client:
         else:
             _logger.error("Login failure", error_code=msg.code, error_msg=msg.msg)
             self._state = _State.FINISH
+            self._disconnector.disconnect()

@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from gb_chat.client.client import Client
+from gb_chat.common.disconnector import Disconnector
 from gb_chat.common.exceptions import InvalidRoomName
 from gb_chat.common.room_name_validator import RoomNameValidator
 from gb_chat.io.message_sender import MessageSender
@@ -25,8 +26,13 @@ def room_name_validator():
 
 
 @pytest.fixture
-def sut_start(msg_sender, room_name_validator):
-    return Client(msg_sender, room_name_validator)
+def disconnector():
+    return MagicMock(spec_set=Disconnector)
+
+
+@pytest.fixture
+def sut_start(msg_sender, room_name_validator, disconnector):
+    return Client(msg_sender, room_name_validator, disconnector)
 
 
 def test_send_login(sut_start, msg_sender):
@@ -44,6 +50,13 @@ def sut_login_sent(sut_start, msg_sender):
 def test_send_presence_when_success_login(sut_login_sent, msg_sender):
     sut_login_sent.on_response(Response(HTTPStatus.OK, "OK"))
     msg_sender.send.assert_called_once_with(Presence(Status.ONLINE))
+
+
+@pytest.mark.parametrize("code", [HTTPStatus.BAD_REQUEST, HTTPStatus.UNAUTHORIZED])
+def test_disconnect_when_login_failed(code, sut_login_sent, msg_sender, disconnector):
+    sut_login_sent.on_response(Response(code, "error"))
+    disconnector.disconnect.assert_called_once()
+    msg_sender.send.assert_not_called()
 
 
 @pytest.fixture
