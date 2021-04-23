@@ -234,6 +234,8 @@ def main(address: str, port: int, verbose: bool) -> None:
 
             try:
                 logger.info("Start server")
+                if not verbose:
+                    print(f"Start server ({address}:{port})")
                 send_probes_thread.start()
                 handler.run()
             except (StopProcessing, KeyboardInterrupt):
@@ -243,6 +245,8 @@ def main(address: str, port: int, verbose: bool) -> None:
             finally:
                 event.set()
                 logger.debug("Waiting for threads to stop")
+                if not verbose:
+                    print(f"Waiting for threads to stop")
                 send_probes_thread.join()
 
 
