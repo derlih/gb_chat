@@ -1,12 +1,12 @@
 from unittest.mock import MagicMock
 
 import pytest
+from gb_chat.common.disconnector import Disconnector
 from gb_chat.io.message_sender import MessageSender
 from gb_chat.msg.client_to_server import ChatFromClient
 from gb_chat.msg.server_to_client import ChatToClient
 from gb_chat.server.chat_room import ChatRoom
 from gb_chat.server.client import Client
-from gb_chat.server.disconnector import Disconnector
 
 
 @pytest.fixture

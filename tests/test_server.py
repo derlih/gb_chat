@@ -2,6 +2,7 @@ from http import HTTPStatus
 from unittest.mock import MagicMock
 
 import pytest
+from gb_chat.common.disconnector import Disconnector
 from gb_chat.io.message_sender import MessageSender
 from gb_chat.msg.client_to_server import (Authenticate, ChatFromClient, Join,
                                           Presence, Quit)
@@ -9,7 +10,6 @@ from gb_chat.msg.server_to_client import ChatToClient, Probe, Response
 from gb_chat.msg.status import Status
 from gb_chat.server.chat_room_manager import ChatRoomManager
 from gb_chat.server.client import Client
-from gb_chat.server.disconnector import Disconnector
 from gb_chat.server.server import Server
 
 

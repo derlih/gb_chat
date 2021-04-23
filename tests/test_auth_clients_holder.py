@@ -2,11 +2,11 @@ from http import HTTPStatus
 from unittest.mock import MagicMock
 
 import pytest
+from gb_chat.common.disconnector import Disconnector
 from gb_chat.io.message_sender import MessageSender
 from gb_chat.msg.server_to_client import Response
 from gb_chat.server.auth_clients_holder import AuthClientsHolder
 from gb_chat.server.client import Client
-from gb_chat.server.disconnector import Disconnector
 
 
 @pytest.fixture

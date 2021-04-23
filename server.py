@@ -9,6 +9,7 @@ from typing import Any, Dict, List
 import click
 import structlog
 
+from gb_chat.common.disconnector import Disconnector
 from gb_chat.common.exceptions import NothingToRead, UnableToWrite
 from gb_chat.common.room_name_validator import RoomNameValidator
 from gb_chat.common.thread_executor import IoThreadExecutor
@@ -24,7 +25,6 @@ from gb_chat.log import (bind_client_name_to_logger,
                          get_logger)
 from gb_chat.server.chat_room_manager import ChatRoomManager
 from gb_chat.server.client import Client
-from gb_chat.server.disconnector import Disconnector
 from gb_chat.server.message_router import MessageRouter
 from gb_chat.server.server import Server
 

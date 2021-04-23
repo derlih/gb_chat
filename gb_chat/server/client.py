@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional
 
+from ..common.disconnector import Disconnector
 from ..io.message_sender import MessageSender
-from .disconnector import Disconnector
 
 
 @dataclass
