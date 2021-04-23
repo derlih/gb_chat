@@ -38,7 +38,15 @@ class MessageSender:
         elif isinstance(msg, Probe):
             return {"action": "probe"}
         elif isinstance(msg, ChatToClient):
-            return {"action": "msg", "from": msg.sender, "message": msg.message}
+            msg_json = {
+                "action": "msg",
+                "from": msg.sender,
+                "message": msg.message,
+            }
+            if msg.room is not None:
+                msg_json["room"] = msg.room
+
+            return msg_json
         elif isinstance(msg, Authenticate):
             return {
                 "action": "authenticate",

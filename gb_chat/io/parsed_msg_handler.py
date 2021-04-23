@@ -60,7 +60,11 @@ class ParsedMessageHandler:
             if action == "probe":
                 router.route(Probe())
             elif action == "msg":
-                router.route(ChatToClient(msg["from"], msg["message"]))
+                router.route(
+                    ChatToClient(
+                        msg["from"], msg["message"], msg.setdefault("room", None)
+                    )
+                )
             else:
                 raise UnsupportedMessageType(f"Unsupported msg action {action}")
         elif "response" in msg:

@@ -43,6 +43,16 @@ test_data_server_to_client = [
         ChatToClient("sender", "message text"),
         {"action": "msg", "time": 123, "from": "sender", "message": "message text"},
     ),
+    (
+        ChatToClient("sender", "message text", "#room"),
+        {
+            "action": "msg",
+            "time": 123,
+            "from": "sender",
+            "message": "message text",
+            "room": "#room",
+        },
+    ),
 ]
 
 
