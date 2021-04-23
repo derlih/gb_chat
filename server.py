@@ -3,7 +3,6 @@ import logging
 import selectors
 import socket
 import threading
-from time import sleep
 from typing import Any, Dict, List
 
 import click
@@ -193,7 +192,7 @@ def schedule_probes_loop(
     timeout: float,
 ) -> None:
     while not event.is_set():
-        sleep(timeout)
+        event.wait(timeout)
         io_thread_executor.schedule(server.send_probes)
 
 
@@ -246,8 +245,6 @@ def main(address: str, port: int, verbose: bool) -> None:
             finally:
                 event.set()
                 logger.debug("Waiting for threads to stop")
-                if not verbose:
-                    print(f"Waiting for threads to stop")
                 send_probes_thread.join()
 
 
