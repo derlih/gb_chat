@@ -1,10 +1,13 @@
+import threading
+
+
 class Disconnector:
     def __init__(self) -> None:
-        self._flag = False
+        self._flag = threading.Event()
 
     def disconnect(self) -> None:
-        self._flag = True
+        self._flag.set()
 
     @property
     def should_disconnect(self) -> bool:
-        return self._flag
+        return self._flag.is_set()
