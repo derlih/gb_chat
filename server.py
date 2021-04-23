@@ -9,7 +9,6 @@ import click
 import structlog
 
 from gb_chat.common.exceptions import NothingToRead, UnableToWrite
-from gb_chat.common.room_name_validator import RoomNameValidator
 from gb_chat.common.thread_executor import IoThreadExecutor
 from gb_chat.io.deserializer import Deserializer
 from gb_chat.io.message_framer import MessageFramer
@@ -210,7 +209,7 @@ def main(address: str, port: int) -> None:
         with selectors.DefaultSelector() as sel:
             event = threading.Event()
             io_thread_executor = IoThreadExecutor()
-            server = Server(RoomNameValidator())
+            server = Server()
             handler = SocketHandler(sel, server, io_thread_executor)
 
             sel.register(
