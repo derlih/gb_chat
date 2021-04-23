@@ -163,15 +163,15 @@ def main(address: str, port: int, username: str, password: str, verbose: bool) -
                 elif cmd.startswith("m"):
                     to = input("To: ")
                     msg = input("Message: ")
-                    client.send_msg(to, msg)
+                    io_thread_executor.schedule(lambda: client.send_msg(to, msg))
                 elif cmd.startswith("j"):
                     room = input("Room: ")
-                    client.join_room(room)
+                    io_thread_executor.schedule(lambda: client.join_room(room))
                 elif cmd.startswith("l"):
                     room = input("Room: ")
-                    client.leave_room(room)
+                    io_thread_executor.schedule(lambda: client.leave_room(room))
                 else:
-                    client.quit()
+                    io_thread_executor.schedule(lambda: client.quit())
                     break
         except KeyboardInterrupt:
             pass
