@@ -1,7 +1,9 @@
+from http import HTTPStatus
 from unittest.mock import MagicMock
 
 import pytest
 from gb_chat.io.message_sender import MessageSender
+from gb_chat.msg.server_to_client import Response
 from gb_chat.server.auth_clients_holder import AuthClientsHolder
 from gb_chat.server.client import Client
 from gb_chat.server.disconnector import Disconnector
@@ -69,7 +71,10 @@ def test_required_disconnect_client_when_not_authed(client_with_name):
     sut = Sut(mock)
     sut.method(MagicMock(), client_with_name)
     mock.assert_not_called()
-    client_with_name.disconnector.disconnect.assert_called_once_with()
+    client_with_name.msg_sender.send.assert_called_once_with(
+        Response(HTTPStatus.FORBIDDEN, "Allowed only for authed users")
+    )
+    client_with_name.disconnector.disconnect.assert_not_called()
 
 
 def test_required_called_when_authed(client_with_name):
@@ -79,4 +84,5 @@ def test_required_called_when_authed(client_with_name):
     sut.auth.add_client(client_with_name)
     sut.method(msg, client_with_name)
     mock.assert_called_once_with(msg, client_with_name)
+    client_with_name.msg_sender.send.assert_not_called()
     client_with_name.disconnector.disconnect.assert_not_called()

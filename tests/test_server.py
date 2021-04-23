@@ -93,9 +93,12 @@ def test_disconnect_client_on_quit_msg(sut_with_client, client):
     client.disconnector.disconnect.assert_called_once_with()
 
 
-def test_on_chat_disconnect_when_not_authed(sut_with_client, client):
+def test_on_chat_403_when_not_authed(sut_with_client, client):
     sut_with_client.on_chat(ChatFromClient("username", "msg"), client)
-    client.disconnector.disconnect.assert_called_once()
+    client.msg_sender.send.assert_called_once_with(
+        Response(HTTPStatus.FORBIDDEN, "Allowed only for authed users")
+    )
+    client.disconnector.disconnect.assert_not_called()
 
 
 def test_on_chat_ignores_msg_to_self(sut_with_authed_client, client):
@@ -103,9 +106,12 @@ def test_on_chat_ignores_msg_to_self(sut_with_authed_client, client):
     client.msg_sender.send.assert_not_called()
 
 
-def test_on_presence_disconnect_when_not_auth(sut_with_client, client):
+def test_on_presence_403_when_not_auth(sut_with_client, client):
     sut_with_client.on_presence(Presence(Status.ONLINE), client)
-    client.disconnector.disconnect.assert_called_once()
+    client.msg_sender.send.assert_called_once_with(
+        Response(HTTPStatus.FORBIDDEN, "Allowed only for authed users")
+    )
+    client.disconnector.disconnect.assert_not_called()
 
 
 def test_on_presence_without_status(sut_with_authed_client, client):
@@ -118,9 +124,12 @@ def test_on_presence(sut_with_authed_client, client):
     client.disconnector.disconnect.assert_not_called()
 
 
-def test_on_join_disconnect_when_not_auth(sut_with_client, client):
+def test_on_join_403_when_not_auth(sut_with_client, client):
     sut_with_client.on_join(Join("#room"), client)
-    client.disconnector.disconnect.assert_called_once()
+    client.msg_sender.send.assert_called_once_with(
+        Response(HTTPStatus.FORBIDDEN, "Allowed only for authed users")
+    )
+    client.disconnector.disconnect.assert_not_called()
 
 
 def test_on_join(sut_with_authed_client, chat_room_manager, client):
@@ -128,9 +137,12 @@ def test_on_join(sut_with_authed_client, chat_room_manager, client):
     chat_room_manager.join.assert_called_once_with("#room", client)
 
 
-def test_on_leave_disconnect_when_not_auth(sut_with_client, client):
+def test_on_leave_403_when_not_auth(sut_with_client, client):
     sut_with_client.on_leave(Join("#room"), client)
-    client.disconnector.disconnect.assert_called_once()
+    client.msg_sender.send.assert_called_once_with(
+        Response(HTTPStatus.FORBIDDEN, "Allowed only for authed users")
+    )
+    client.disconnector.disconnect.assert_not_called()
 
 
 def test_on_leave(sut_with_authed_client, chat_room_manager, client):

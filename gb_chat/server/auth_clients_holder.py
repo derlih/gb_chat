@@ -1,8 +1,10 @@
 from functools import partial, wraps
+from http import HTTPStatus
 from typing import Any, Callable, Dict, Optional, Union, ValuesView
 
 from ..log import get_logger
 from ..msg.client_to_server import ClientToServerMessage
+from ..msg.server_to_client import Response
 from .client import Client
 
 _logger: Any = get_logger()
@@ -20,7 +22,9 @@ def _auth_deco(
     ) -> None:
         if not holder.is_authed(from_client):
             _logger.warning("This msg is not allowed for unauthed user")
-            from_client.disconnector.disconnect()
+            from_client.msg_sender.send(
+                Response(HTTPStatus.FORBIDDEN, "Allowed only for authed users")
+            )
             return
 
         func(class_self, msg, from_client)
