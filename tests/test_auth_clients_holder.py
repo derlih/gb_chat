@@ -72,7 +72,7 @@ def test_required_disconnect_client_when_not_authed(client_with_name):
     sut.method(MagicMock(), client_with_name)
     mock.assert_not_called()
     client_with_name.msg_sender.send.assert_called_once_with(
-        Response(HTTPStatus.FORBIDDEN, "Allowed only for authed users")
+        Response(HTTPStatus.UNAUTHORIZED, "Allowed only for authed users")
     )
     client_with_name.disconnector.disconnect.assert_not_called()
 

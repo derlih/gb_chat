@@ -23,7 +23,7 @@ def _auth_deco(
         if not holder.is_authed(from_client):
             _logger.warning("This msg is not allowed for unauthed user")
             from_client.msg_sender.send(
-                Response(HTTPStatus.FORBIDDEN, "Allowed only for authed users")
+                Response(HTTPStatus.UNAUTHORIZED, "Allowed only for authed users")
             )
             return
 
