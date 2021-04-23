@@ -61,7 +61,7 @@ def mainloop(
     io_thread_executor: IoThreadExecutor,
     event: threading.Event,
 ) -> None:
-    while not event.is_set() or not disconnector.should_disconnect:
+    while not event.is_set() and not disconnector.should_disconnect:
         r, w, _ = select.select([sock], [sock], [], EVENTS_WAIT_TIMEOUT)
         if r:
             read_data(sock, msg_splitter)
