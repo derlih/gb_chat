@@ -1,14 +1,13 @@
 from http import HTTPStatus
 from typing import Any, Dict, List, cast
 
-from gb_chat.server.chat_room_manager import ChatRoomManager
-
 from ..common.room_name_validator import RoomNameValidator
 from ..log import get_logger
 from ..msg.client_to_server import (Authenticate, ChatFromClient, Join, Leave,
                                     Presence, Quit)
 from ..msg.server_to_client import ChatToClient, Probe, Response
 from .auth_clients_holder import AuthClientsHolder
+from .chat_room_manager import ChatRoomManager
 from .client import Client
 
 _logger: Any = get_logger()

@@ -1,11 +1,10 @@
 from typing import Any, Callable, Dict
 
-from gb_chat.msg.server_to_client import ChatToClient
-
 from ..common.exceptions import InvalidRoomName
 from ..common.room_name_validator import RoomNameValidator
 from ..log import get_logger
 from ..msg.client_to_server import ChatFromClient
+from ..msg.server_to_client import ChatToClient
 from .chat_room import ChatRoom, ChatToClientFactory
 from .client import Client
 
