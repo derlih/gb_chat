@@ -22,8 +22,11 @@ class ChatRoomManager:
         self._chat_room_factory = chat_room_factory
         self._rooms: Dict[str, ChatRoom] = {}
 
+    def is_valid_name(self, room_name: str) -> bool:
+        return self._room_name_validator.is_valid(room_name)
+
     def join(self, room_name: str, client: Client):
-        if not self._room_name_validator.is_valid(room_name):
+        if not self.is_valid_name(room_name):
             raise InvalidRoomName(f"{room_name} is not valid")
 
         if room_name in self._rooms:
