@@ -45,6 +45,10 @@ class Server:
 
     @auth.required
     def on_presence(self, msg: Presence, from_client: Client) -> None:
+        if not msg.status:
+            _logger.debug("Presence without status received")
+            return
+
         _logger.info("Set presence", presence=msg.status.value)
 
     @auth.required
