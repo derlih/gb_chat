@@ -21,6 +21,7 @@ from gb_chat.io.message_splitter import MessageSplitter
 from gb_chat.io.parsed_msg_handler import ParsedMessageHandler
 from gb_chat.io.send_buffer import SendBuffer
 from gb_chat.io.serializer import Serializer
+from gb_chat.io.settings import EVENTS_WAIT_TIMEOUT
 from gb_chat.log import configure_logging, get_logger
 
 _logger: Any = get_logger()
@@ -61,7 +62,7 @@ def mainloop(
     event: threading.Event,
 ) -> None:
     while not event.is_set() or not disconnector.should_disconnect:
-        r, w, _ = select.select([sock], [sock], [], 0.1)
+        r, w, _ = select.select([sock], [sock], [], EVENTS_WAIT_TIMEOUT)
         if r:
             read_data(sock, msg_splitter)
         if w:
