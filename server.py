@@ -1,4 +1,5 @@
 import errno
+import logging
 import selectors
 import socket
 import threading
@@ -197,7 +198,7 @@ def schedule_probes_loop(
 @click.option("-a", "--address", type=str, default="localhost")
 @click.option("-p", "--port", type=click.IntRange(1, 65535), default=7777)
 def main(address: str, port: int) -> None:
-    configure_logging(structlog.dev.ConsoleRenderer(colors=False))
+    configure_logging(structlog.dev.ConsoleRenderer(colors=False), logging.DEBUG)
     logger = _logger.bind(address=address, port=port)
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_sock:

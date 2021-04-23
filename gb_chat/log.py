@@ -1,3 +1,4 @@
+import logging
 import logging.config
 import socket
 import sys
@@ -9,7 +10,9 @@ from structlog.contextvars import (bind_contextvars, merge_contextvars,
                                    unbind_contextvars)
 
 
-def configure_logging(processor: Any):
+def configure_logging(processor: Any, level: int):
+    timestamper = structlog.processors.TimeStamper(fmt="iso")
+
     logging.config.dictConfig(
         {
             "version": 1,
@@ -19,13 +22,7 @@ def configure_logging(processor: Any):
                     "()": structlog.stdlib.ProcessorFormatter,
                     "processor": processor,
                     # Adjust log entries that are not from structlog
-                    "foreign_pre_chain": [
-                        merge_contextvars,
-                        structlog.stdlib.add_log_level,
-                        structlog.stdlib.add_logger_name,
-                        structlog.processors.TimeStamper(fmt="iso"),
-                        structlog.processors.format_exc_info,  # type: ignore
-                    ],
+                    "foreign_pre_chain": [structlog.stdlib.add_log_level, timestamper,],
                 },
             },
             "handlers": {
@@ -47,7 +44,7 @@ def configure_logging(processor: Any):
             structlog.stdlib.add_log_level,
             structlog.stdlib.add_logger_name,
             structlog.stdlib.PositionalArgumentsFormatter(),
-            structlog.processors.TimeStamper(fmt="iso"),
+            timestamper,
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,  # type: ignore
             structlog.processors.UnicodeDecoder(),
@@ -55,7 +52,7 @@ def configure_logging(processor: Any):
         ],
         context_class=dict,
         logger_factory=structlog.stdlib.LoggerFactory(),
-        wrapper_class=structlog.stdlib.BoundLogger,
+        wrapper_class=structlog.make_filtering_bound_logger(level),
         cache_logger_on_first_use=True,
     )
 
@@ -85,11 +82,11 @@ def bind_client_name_to_logger(name: str):
 
 
 def get_logger(name: Optional[str] = None) -> Any:
-    logger = structlog.get_logger()
     if not name:
         f = sys._getframe().f_back  # type: ignore
         name = f.f_globals.get("__name__") or None  # type: ignore
 
     if name:
-        return logger.bind(logger=name)
-    return logger
+        structlog.get_logger(name)
+
+    return structlog.get_logger()

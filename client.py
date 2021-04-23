@@ -1,4 +1,5 @@
 import errno
+import logging
 import select
 import socket
 import threading
@@ -99,7 +100,7 @@ def io_thread(
 @click.option("-u", "--username", type=str, required=True)
 @click.option("--password", type=str, required=True)
 def main(address: str, port: int, username: str, password: str) -> None:
-    configure_logging(structlog.dev.ConsoleRenderer(colors=False))
+    configure_logging(structlog.dev.ConsoleRenderer(colors=False), logging.INFO)
     logger = _logger.bind(address=address, port=port)
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
