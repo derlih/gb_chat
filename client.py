@@ -93,11 +93,13 @@ def io_thread(
 
 
 @click.command()
-@click.option("-a", "--address", type=str, default="localhost")
-@click.option("-p", "--port", type=click.IntRange(1, 65535), default=7777)
-@click.option("-u", "--username", type=str, required=True)
-@click.option("--password", type=str, required=True)
-@click.option("-v", "--verbose", is_flag=True, default=False)
+@click.option("-a", "--address", type=str, default="localhost", show_default=True)
+@click.option(
+    "-p", "--port", type=click.IntRange(1, 65535), default=7777, show_default=True
+)
+@click.argument("username", type=str, required=True)
+@click.argument("password", type=str, required=True)
+@click.option("-v", "--verbose", is_flag=True, default=False, show_default=True)
 def main(address: str, port: int, username: str, password: str, verbose: bool) -> None:
     log_level = logging.DEBUG if verbose else logging.ERROR
     configure_logging(structlog.dev.ConsoleRenderer(colors=False), log_level)
