@@ -3,7 +3,8 @@ from typing import Any, Callable
 
 from ..log import get_logger
 from .exceptions import DeserializationError
-from .parsed_msg_handler import JSON, ParsedMessageHandler
+from .json import JSON
+from .parsed_msg_handler import ParsedMessageHandler
 from .settings import MSG_ENCODING
 
 _logger: Any = get_logger()

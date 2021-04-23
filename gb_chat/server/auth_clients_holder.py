@@ -8,7 +8,12 @@ from .client import Client
 _logger: Any = get_logger()
 
 
-def _auth_deco(holder: "AuthClientsHolder", func: Callable) -> Callable:
+_ServerMessageHandler = Callable[[Any, Any, Client], None]
+
+
+def _auth_deco(
+    holder: "AuthClientsHolder", func: _ServerMessageHandler
+) -> _ServerMessageHandler:
     @wraps(func)
     def decorated(
         class_self: object, msg: ClientToServerMessage, from_client: Client
@@ -56,5 +61,5 @@ class AuthClientsHolder:
         return self._auth_clients.values()
 
     @property
-    def required(self) -> Callable[[Callable], Callable]:
+    def required(self) -> Callable[[_ServerMessageHandler], _ServerMessageHandler]:
         return partial(_auth_deco, self)

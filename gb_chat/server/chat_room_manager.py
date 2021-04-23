@@ -27,7 +27,7 @@ class ChatRoomManager:
     def is_valid_name(self, room_name: str) -> bool:
         return self._room_name_validator.is_valid(room_name)
 
-    def join(self, room_name: str, client: Client):
+    def join(self, room_name: str, client: Client) -> None:
         if not self.is_valid_name(room_name):
             raise InvalidRoomName(f"{room_name} is not valid")
 
@@ -43,7 +43,9 @@ class ChatRoomManager:
         _logger.info("User joins group", room=room_name, client=client.name)
         room.join(client)
 
-    def leave(self, room_name: str, client: Client, log_user_leave: bool = True):
+    def leave(
+        self, room_name: str, client: Client, log_user_leave: bool = True
+    ) -> None:
         if room_name not in self._rooms:
             return
 

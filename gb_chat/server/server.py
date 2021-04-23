@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Any, Dict, List
+from typing import Any, Dict, List, cast
 
 from gb_chat.server.chat_room_manager import ChatRoomManager
 
@@ -90,4 +90,6 @@ class Server:
             _logger.warning("Chat message for self", to=msg.to)
             return
 
-        to_client.msg_sender.send(ChatToClient(from_client.name, msg.message))
+        to_client.msg_sender.send(
+            ChatToClient(cast(str, from_client.name), msg.message)
+        )

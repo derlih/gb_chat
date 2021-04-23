@@ -10,7 +10,7 @@ from structlog.contextvars import (bind_contextvars, merge_contextvars,
                                    unbind_contextvars)
 
 
-def configure_logging(processor: Any, level: int):
+def configure_logging(processor: Any, level: int) -> None:
     timestamper = structlog.processors.TimeStamper(fmt="iso")
 
     logging.config.dictConfig(
@@ -38,15 +38,15 @@ def configure_logging(processor: Any, level: int):
         }
     )
 
-    structlog.configure_once(  # type: ignore
-        processors=[  # type: ignore
+    structlog.configure_once(
+        processors=[
             merge_contextvars,
             structlog.stdlib.add_log_level,
             structlog.stdlib.add_logger_name,
             structlog.stdlib.PositionalArgumentsFormatter(),
             timestamper,
             structlog.processors.StackInfoRenderer(),
-            structlog.processors.format_exc_info,  # type: ignore
+            structlog.processors.format_exc_info,
             structlog.processors.UnicodeDecoder(),
             structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
         ],
@@ -58,7 +58,7 @@ def configure_logging(processor: Any, level: int):
 
 
 @contextmanager
-def bind_remote_address_to_logger(sock: socket.socket):
+def bind_remote_address_to_logger(sock: socket.socket):  # type:ignore
     try:
         bind_contextvars(remote=sock.getpeername())
     except socket.error:
@@ -71,7 +71,7 @@ def bind_remote_address_to_logger(sock: socket.socket):
 
 
 @contextmanager
-def bind_client_name_to_logger(name: str):
+def bind_client_name_to_logger(name: str):  # type:ignore
     if name:
         bind_contextvars(client=name)
 
@@ -83,8 +83,9 @@ def bind_client_name_to_logger(name: str):
 
 def get_logger(name: Optional[str] = None) -> Any:
     if not name:
-        f = sys._getframe().f_back  # type: ignore
-        name = f.f_globals.get("__name__") or None  # type: ignore
+        f = sys._getframe().f_back
+        if f is not None:
+            name = f.f_globals.get("__name__") or None
 
     if name:
         structlog.get_logger(name)
