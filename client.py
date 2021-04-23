@@ -77,8 +77,6 @@ def io_thread(
     sock: socket.socket,
     send_buffer: SendBuffer,
     msg_splitter: MessageSplitter,
-    username: str,
-    password: str,
     logger: Any,
     io_thread_executor: IoThreadExecutor,
     event: threading.Event,
@@ -99,8 +97,10 @@ def io_thread(
 @click.option("-p", "--port", type=click.IntRange(1, 65535), default=7777)
 @click.option("-u", "--username", type=str, required=True)
 @click.option("--password", type=str, required=True)
-def main(address: str, port: int, username: str, password: str) -> None:
-    configure_logging(structlog.dev.ConsoleRenderer(colors=False), logging.INFO)
+@click.option("-v", "--verbose", is_flag=True, default=False)
+def main(address: str, port: int, username: str, password: str, verbose: bool) -> None:
+    log_level = logging.DEBUG if verbose else logging.ERROR
+    configure_logging(structlog.dev.ConsoleRenderer(colors=False), log_level)
     logger = _logger.bind(address=address, port=port)
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -128,14 +128,7 @@ def main(address: str, port: int, username: str, password: str) -> None:
         thread = threading.Thread(
             name="io",
             target=lambda: io_thread(
-                sock,
-                send_buffer,
-                msg_splitter,
-                username,
-                password,
-                logger,
-                io_thread_executor,
-                event,
+                sock, send_buffer, msg_splitter, logger, io_thread_executor, event,
             ),
         )
         try:
