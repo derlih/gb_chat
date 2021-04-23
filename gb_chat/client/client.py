@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from http import HTTPStatus
+from http import HTTPStatus, client
 from typing import Any
 
 from ..common.exceptions import InvalidRoomName
@@ -74,6 +74,8 @@ class Client:
     def on_response(self, msg: Response) -> None:
         if self._state == _State.LOGIN_SENT:
             self._handle_auth_response(msg)
+        else:
+            print(f"Error {msg.code} ({client.responses[msg.code]}): {msg.msg}")
 
     def on_probe(self, msg: Probe) -> None:
         _logger.debug("Probe received")
