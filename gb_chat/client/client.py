@@ -80,6 +80,10 @@ class Client:
 
     def on_chat(self, msg: ChatToClient) -> None:
         _logger.info("Chat received", from_user=msg.sender, msg=msg.message)
+        if msg.room is None:
+            print(f"Message from {msg.sender}: {msg.message}")
+        else:
+            print(f"Message from {msg.room} ({msg.sender}): {msg.message}")
 
     def _handle_auth_response(self, msg: Response) -> None:
         if msg.code == HTTPStatus.OK:

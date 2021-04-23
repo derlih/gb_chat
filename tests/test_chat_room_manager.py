@@ -87,7 +87,7 @@ def test_leave_remove_room(sut_with_room, chat_room_factory, chat_room, client):
     chat_room_factory.side_effect = None
     sut_with_room.join("#room", client)
 
-    chat_room_factory.assert_called_once_with()
+    chat_room_factory.assert_called_once()
 
 
 def test_leave_all(sut_with_room, chat_room_factory, chat_room, client):
@@ -98,7 +98,7 @@ def test_leave_all(sut_with_room, chat_room_factory, chat_room, client):
     chat_room_factory.side_effect = None
     sut_with_room.join("#room", client)
 
-    chat_room_factory.assert_called_once_with()
+    chat_room_factory.assert_called_once()
 
 
 def test_send_message(sut_with_room, chat_room, client):

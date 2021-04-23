@@ -1,15 +1,17 @@
 from typing import Any, Callable, Dict
 
+from gb_chat.msg.server_to_client import ChatToClient
+
 from ..common.exceptions import InvalidRoomName
 from ..common.room_name_validator import RoomNameValidator
 from ..log import get_logger
 from ..msg.client_to_server import ChatFromClient
-from .chat_room import ChatRoom
+from .chat_room import ChatRoom, ChatToClientFactory
 from .client import Client
 
 _logger: Any = get_logger()
 
-ChatRoomFactory = Callable[[], ChatRoom]
+ChatRoomFactory = Callable[[ChatToClientFactory], ChatRoom]
 
 
 class ChatRoomManager:
@@ -33,7 +35,9 @@ class ChatRoomManager:
             room = self._rooms[room_name]
         else:
             _logger.debug("Room created", room=room_name)
-            room = self._chat_room_factory()
+            room = self._chat_room_factory(
+                lambda sender, message: ChatToClient(sender, message, room_name)
+            )
             self._rooms[room_name] = room
 
         _logger.info("User joins group", room=room_name, client=client.name)

@@ -10,19 +10,24 @@ from gb_chat.server.disconnector import Disconnector
 
 
 @pytest.fixture
-def client():
-    return Client(
-        MagicMock(spec_set=MessageSender), MagicMock(spec_set=Disconnector), "username"
-    )
+def chat_to_client_factory():
+    return lambda s, m: ChatToClient(s, m, "#room")
 
 
 @pytest.fixture
-def sut():
-    return ChatRoom()
+def sut(chat_to_client_factory):
+    return ChatRoom(chat_to_client_factory)
 
 
 def test_empty_when_no_clients(sut):
     assert sut.empty
+
+
+@pytest.fixture
+def client():
+    return Client(
+        MagicMock(spec_set=MessageSender), MagicMock(spec_set=Disconnector), "username"
+    )
 
 
 def test_join(sut, client):
@@ -51,4 +56,6 @@ def test_send_message(sut_with_client, client):
         ChatFromClient("#doesnt-matter", "message text"), client
     )
     client.msg_sender.send.assert_not_called()
-    client2.msg_sender.send.assert_called_with(ChatToClient("username", "message text"))
+    client2.msg_sender.send.assert_called_with(
+        ChatToClient("username", "message text", "#room")
+    )
