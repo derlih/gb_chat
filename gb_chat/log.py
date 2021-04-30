@@ -11,6 +11,7 @@ from structlog.contextvars import (bind_contextvars, merge_contextvars,
 
 
 def configure_logging(processor: Any, level: int) -> None:
+    level_str = logging.getLevelName(level)
     timestamper = structlog.processors.TimeStamper(fmt="iso")
 
     logging.config.dictConfig(
@@ -22,18 +23,30 @@ def configure_logging(processor: Any, level: int) -> None:
                     "()": structlog.stdlib.ProcessorFormatter,
                     "processor": processor,
                     # Adjust log entries that are not from structlog
-                    "foreign_pre_chain": [structlog.stdlib.add_log_level, timestamper,],
+                    "foreign_pre_chain": [
+                        structlog.stdlib.add_log_level,
+                        structlog.stdlib.add_logger_name,
+                        timestamper,
+                    ],
                 },
             },
             "handlers": {
                 "default": {
-                    "level": "DEBUG",
+                    "level": level_str,
                     "class": "logging.StreamHandler",
                     "formatter": "formater",
                 },
             },
             "loggers": {
-                "": {"handlers": ["default"], "level": "DEBUG", "propagate": True,},
+                "": {
+                    "handlers": ["default"],
+                    "level": level_str,
+                    "propagate": True,
+                },
+                "sqlalchemy": {
+                    "handlers": ["default"],
+                    "level": level_str,
+                },
             },
         }
     )
