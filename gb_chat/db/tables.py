@@ -25,7 +25,7 @@ class User(Base):
     __tablename__ = "users"
 
     user_id = Column("id", INTEGER, primary_key=True)
-    username = Column(VARCHAR, nullable=False, unique=True)
+    username = Column(VARCHAR, nullable=False, unique=True, index=True)
     password = Column(VARCHAR, nullable=False)
 
     history: List["UserHistory"]
