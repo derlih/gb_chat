@@ -4,8 +4,9 @@ from typing import Any, Optional, Union, cast
 from ..client.message_router import MessageRouter as ClientMessageRouter
 from ..common.exceptions import UnsupportedMessageType
 from ..log import get_logger
-from ..msg.client_to_server import (Authenticate, ChatFromClient, Join, Leave,
-                                    Presence, Quit)
+from ..msg.client_to_server import (AddContact, Authenticate, ChatFromClient,
+                                    GetContacts, Join, Leave, Presence, Quit,
+                                    RemoveContact)
 from ..msg.server_to_client import ChatToClient, Probe, Response
 from ..msg.status import Status
 from ..server.message_router import MessageRouter as ServerMessageRouter
@@ -50,6 +51,12 @@ class ParsedMessageHandler:
             router.route(Join(msg["room"]))
         elif action == "leave":
             router.route(Leave(msg["room"]))
+        elif action == "add_contact":
+            router.route(AddContact(msg["user"]))
+        elif action == "del_contact":
+            router.route(RemoveContact(msg["user"]))
+        elif action == "get_contacts":
+            router.route(GetContacts())
         else:
             raise UnsupportedMessageType(f"Unsupported action {action}")
 

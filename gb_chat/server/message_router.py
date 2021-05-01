@@ -2,9 +2,9 @@ from typing import Any
 
 from ..common.exceptions import UnsupportedMessageType
 from ..log import get_logger
-from ..msg.client_to_server import (Authenticate, ChatFromClient,
-                                    ClientToServerMessage, Join, Leave,
-                                    Presence, Quit)
+from ..msg.client_to_server import (AddContact, Authenticate, ChatFromClient,
+                                    ClientToServerMessage, GetContacts, Join,
+                                    Leave, Presence, Quit, RemoveContact)
 from .client import Client
 from .server import Server
 
@@ -30,5 +30,11 @@ class MessageRouter:
             self._server.on_join(msg, self._client)
         elif isinstance(msg, Leave):
             self._server.on_leave(msg, self._client)
+        elif isinstance(msg, AddContact):
+            self._server.on_add_contact(msg, self._client)
+        elif isinstance(msg, RemoveContact):
+            self._server.on_remove_contact(msg, self._client)
+        elif isinstance(msg, GetContacts):
+            self._server.on_get_contacts(msg, self._client)
         else:
             raise UnsupportedMessageType(f"Unsupported message {type(msg)}")

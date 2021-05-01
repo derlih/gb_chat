@@ -4,8 +4,9 @@ from unittest.mock import MagicMock
 import pytest
 from gb_chat.common.disconnector import Disconnector
 from gb_chat.io.message_sender import MessageSender
-from gb_chat.msg.client_to_server import (Authenticate, ChatFromClient, Join,
-                                          Presence, Quit)
+from gb_chat.msg.client_to_server import (AddContact, Authenticate,
+                                          ChatFromClient, GetContacts, Join,
+                                          Presence, Quit, RemoveContact)
 from gb_chat.msg.server_to_client import ChatToClient, Probe, Response
 from gb_chat.msg.status import Status
 from gb_chat.server.chat_room_manager import ChatRoomManager
@@ -191,3 +192,33 @@ def test_on_chat_to_room(sut_with_authed_client, chat_room_manager, client):
 
     chat_room_manager.is_valid_name.assert_called_once_with("#room")
     chat_room_manager.send_message.assert_called_once_with(msg, client)
+
+
+def test_on_add_contact_401_when_not_authed(sut_with_client, client):
+    msg = AddContact("other_user")
+    sut_with_client.on_add_contact(msg, client)
+
+    client.msg_sender.send.assert_called_once_with(
+        Response(HTTPStatus.UNAUTHORIZED, "Allowed only for authed users")
+    )
+    client.disconnector.disconnect.assert_not_called()
+
+
+def test_on_remove_contact_401_when_not_authed(sut_with_client, client):
+    msg = RemoveContact("other_user")
+    sut_with_client.on_remove_contact(msg, client)
+
+    client.msg_sender.send.assert_called_once_with(
+        Response(HTTPStatus.UNAUTHORIZED, "Allowed only for authed users")
+    )
+    client.disconnector.disconnect.assert_not_called()
+
+
+def test_on_get_contacts_401_when_not_authed(sut_with_client, client):
+    msg = GetContacts()
+    sut_with_client.on_get_contacts(msg, client)
+
+    client.msg_sender.send.assert_called_once_with(
+        Response(HTTPStatus.UNAUTHORIZED, "Allowed only for authed users")
+    )
+    client.disconnector.disconnect.assert_not_called()

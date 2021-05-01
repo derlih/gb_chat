@@ -3,8 +3,9 @@ from typing import Any, Dict, List, cast
 
 from ..common.room_name_validator import RoomNameValidator
 from ..log import get_logger
-from ..msg.client_to_server import (Authenticate, ChatFromClient, Join, Leave,
-                                    Presence, Quit)
+from ..msg.client_to_server import (AddContact, Authenticate, ChatFromClient,
+                                    GetContacts, Join, Leave, Presence, Quit,
+                                    RemoveContact)
 from ..msg.server_to_client import ChatToClient, Probe, Response
 from .auth_clients_holder import AuthClientsHolder
 from .chat_room_manager import ChatRoomManager
@@ -75,6 +76,18 @@ class Server:
     @auth.required
     def on_leave(self, msg: Leave, from_client: Client) -> None:
         self._chat_room_manager.leave(msg.room, from_client)
+
+    @auth.required
+    def on_add_contact(self, msg: AddContact, from_client: Client) -> None:
+        pass
+
+    @auth.required
+    def on_remove_contact(self, msg: RemoveContact, from_client: Client) -> None:
+        pass
+
+    @auth.required
+    def on_get_contacts(self, msg: GetContacts, from_client: Client) -> None:
+        pass
 
     def _send_user_to_room_msg(self, msg: ChatFromClient, from_client: Client) -> None:
         self._chat_room_manager.send_message(msg, from_client)

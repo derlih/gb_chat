@@ -7,8 +7,9 @@ from gb_chat.common.exceptions import UnsupportedMessageType
 from gb_chat.io.message_sender import MessageSender
 from gb_chat.io.parsed_msg_handler import ParsedMessageHandler
 from gb_chat.io.serializer import Serializer
-from gb_chat.msg.client_to_server import (Authenticate, ChatFromClient, Join,
-                                          Leave, Presence, Quit)
+from gb_chat.msg.client_to_server import (AddContact, Authenticate,
+                                          ChatFromClient, GetContacts, Join,
+                                          Leave, Presence, Quit, RemoveContact)
 from gb_chat.msg.server_to_client import ChatToClient, Probe, Response
 from gb_chat.msg.status import Status
 from gb_chat.server.message_router import MessageRouter as ServerMessageRouter
@@ -47,6 +48,15 @@ test_data_client_to_server = [
         Leave("#room_name"),
         {"action": "leave", "room": "#room_name", "time": TIME_FACTORY_TIMESTAMP},
     ),
+    (
+        AddContact("user_name"),
+        {"action": "add_contact", "user": "user_name", "time": TIME_FACTORY_TIMESTAMP},
+    ),
+    (
+        RemoveContact("user_name"),
+        {"action": "del_contact", "user": "user_name", "time": TIME_FACTORY_TIMESTAMP},
+    ),
+    (GetContacts(), {"action": "get_contacts", "time": TIME_FACTORY_TIMESTAMP}),
 ]
 
 test_data_server_to_client = [

@@ -36,4 +36,29 @@ class Leave:
     room: str
 
 
-ClientToServerMessage = Union[Authenticate, Quit, Presence, ChatFromClient, Join, Leave]
+@dataclass(frozen=True)
+class AddContact:
+    user: str
+
+
+@dataclass(frozen=True)
+class RemoveContact:
+    user: str
+
+
+@dataclass(frozen=True)
+class GetContacts:
+    pass
+
+
+ClientToServerMessage = Union[
+    Authenticate,
+    Quit,
+    Presence,
+    ChatFromClient,
+    Join,
+    Leave,
+    AddContact,
+    RemoveContact,
+    GetContacts,
+]
