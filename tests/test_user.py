@@ -2,14 +2,12 @@ import pytest
 from gb_chat.db.user import (InvalidName, InvalidPassword, UserExists,
                              UserStorage)
 
+from conftest import VALID_PASSWORD, VALID_USERNAME
+
 
 @pytest.fixture
-def sut(session_factory):
-    return UserStorage(session_factory)
-
-
-VALID_USERNAME = "user"
-VALID_PASSWORD = "P@ssw0rd"
+def sut(session):
+    return UserStorage(session)
 
 
 @pytest.mark.parametrize("username", ["", " ", "user 1", "usr"])

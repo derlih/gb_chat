@@ -1,11 +1,11 @@
 import re
-from contextlib import closing
 
 from sqlalchemy import INTEGER, VARCHAR, Column
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.session import Session
 from sqlalchemy.sql import and_, exists
 
-from .types import Base, SessionFactory
+from .types import Base
 
 
 class InvalidName(ValueError):
@@ -29,26 +29,24 @@ class User(Base):
 
 
 class UserStorage:
-    def __init__(self, session_factory: SessionFactory) -> None:
-        self._session_factory = session_factory
+    def __init__(self, session: Session) -> None:
+        self._session = session
 
     def register_user(self, username: str, password: str) -> None:
         self._check_username(username)
         self._check_password_complexity(password)
 
         try:
-            with closing(self._session_factory()) as session:
-                session.add(User(username=username, password=password))
-                session.commit()
+            self._session.add(User(username=username, password=password))
+            self._session.commit()
         except IntegrityError:
             raise UserExists()
 
     def credentials_valid(self, username: str, password: str) -> bool:
-        with closing(self._session_factory()) as session:
-            stmt = exists().where(
-                and_(User.username == username, User.password == password)
-            )
-            return session.query(stmt).scalar()  # type: ignore
+        stmt = exists().where(
+            and_(User.username == username, User.password == password)
+        )
+        return self._session.query(stmt).scalar()  # type: ignore
 
     @staticmethod
     def _check_username(username: str) -> None:

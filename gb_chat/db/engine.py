@@ -6,6 +6,7 @@ from sqlalchemy.engine import Engine, create_engine
 
 from .types import Base
 from .user import User
+from .user_history import UserHistory
 
 
 def _fk_pragma_on_connect(dbapi_con: sqlite3.Connection, _: Any) -> None:
@@ -15,5 +16,5 @@ def _fk_pragma_on_connect(dbapi_con: sqlite3.Connection, _: Any) -> None:
 def make_engine(url: str, **kwargs: Any) -> Engine:
     engine = create_engine(url, **kwargs)
     event.listen(engine, "connect", _fk_pragma_on_connect)  # type: ignore
-    Base.metadata.create_all(engine, tables=(User.__table__,))
+    Base.metadata.create_all(engine, tables=(User.__table__, UserHistory.__table__))
     return engine
