@@ -1,12 +1,16 @@
 import re
+from typing import Any
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql import and_, exists
 
+from ..log import get_logger
 from .tables import User
 from .user_history_storage import UserHistoryStorage
+
+_logger: Any = get_logger()
 
 
 class InvalidName(ValueError):
@@ -41,6 +45,7 @@ class UserStorage:
             self._session.add(user)
             self._user_history_storage.add_register_record(user)
             self._session.commit()
+            _logger.debug("User registered", username=username)
         except IntegrityError:
             raise UserExists()
 
@@ -48,10 +53,16 @@ class UserStorage:
         stmt = exists().where(
             and_(User.username == username, User.password == password)
         )
-        return self._session.query(stmt).scalar()  # type: ignore
+        valid: bool = self._session.query(stmt).scalar()  # type: ignore
+        if valid:
+            _logger.debug("creds for user are valid", username=username)
+        else:
+            _logger.debug("creds for user are invalid", username=username)
+        return valid
 
     def get_user_by_name(self, username: str) -> User:
         try:
+            _logger.debug("Get user by name", username=username)
             return self._session.query(User).filter(User.username == username).one()
         except NoResultFound:
             raise UserNotFound(f"user with username={username}")
