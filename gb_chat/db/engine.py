@@ -4,9 +4,7 @@ from typing import Any
 from sqlalchemy import event
 from sqlalchemy.engine import Engine, create_engine
 
-from .types import Base
-from .user import User
-from .user_history import UserHistory
+from .tables import Base, User, UserHistory
 
 
 def _fk_pragma_on_connect(dbapi_con: sqlite3.Connection, _: Any) -> None:

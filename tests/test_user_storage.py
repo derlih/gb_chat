@@ -1,9 +1,9 @@
 from unittest.mock import MagicMock
 
 import pytest
-from gb_chat.db.user import (InvalidName, InvalidPassword, UserExists,
-                             UserStorage)
-from gb_chat.db.user_history import UserHistoryStorage
+from gb_chat.db.user_history_storage import UserHistoryStorage
+from gb_chat.db.user_storage import (InvalidName, InvalidPassword, UserExists,
+                                     UserStorage)
 
 from conftest import VALID_PASSWORD, VALID_USERNAME
 

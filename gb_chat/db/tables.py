@@ -1,16 +1,23 @@
 from enum import IntEnum, auto
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional, Type
 
-from sqlalchemy import INTEGER, TIMESTAMP, Column, ForeignKey
+from sqlalchemy import INTEGER, TIMESTAMP, VARCHAR, Column, ForeignKey
 from sqlalchemy.engine.interfaces import Dialect
+from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.relationships import RelationshipProperty
-from sqlalchemy.orm.session import Session
-from sqlalchemy.types import TypeDecorator
+from sqlalchemy.sql.type_api import TypeDecorator
 
-from ..common.types import TimeFactory
-from .types import Base
-from .user import User
+Base: Type[DeclarativeMeta] = declarative_base()
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    user_id = Column("id", INTEGER, primary_key=True)
+    username = Column(VARCHAR, nullable=False, unique=True)
+    password = Column(VARCHAR, nullable=False)
+    history: List["UserHistory"]
 
 
 class UserHistoryEventEnum(IntEnum):
@@ -56,25 +63,3 @@ class UserHistory(Base):
     time = Column("at", TIMESTAMP(), nullable=False)
 
     user: UserRelationship = relationship(User, backref="history")
-
-
-class UserHistoryStorage:
-    def __init__(self, session: Session, time_factory: TimeFactory) -> None:
-        self._session = session
-        self._time_factory = time_factory
-
-    def all(self) -> List[UserHistory]:
-        return self._session.query(UserHistory).all()
-
-    def add_register_record(self, user: User) -> None:
-        self._add_record(user, UserHistoryEventEnum.REGISTER)
-
-    def add_login_record(self, user: User) -> None:
-        self._add_record(user, UserHistoryEventEnum.LOGIN)
-
-    def add_logout_record(self, user: User) -> None:
-        self._add_record(user, UserHistoryEventEnum.LOGOUT)
-
-    def _add_record(self, user: User, event: UserHistoryEventEnum) -> None:
-        user.history.append(UserHistory(event=event, time=self._time_factory()))
-        self._session.commit()

@@ -1,11 +1,11 @@
 import re
 
-from sqlalchemy import INTEGER, VARCHAR, Column
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql import and_, exists
 
-from .types import Base
+from .tables import User
+from .user_history_storage import UserHistoryStorage
 
 
 class InvalidName(ValueError):
@@ -20,17 +20,9 @@ class UserExists(ValueError):
     pass
 
 
-class User(Base):
-    __tablename__ = "users"
-
-    user_id = Column("id", INTEGER, primary_key=True)
-    username = Column(VARCHAR, nullable=False, unique=True)
-    password = Column(VARCHAR, nullable=False)
-
-
 class UserStorage:
     def __init__(
-        self, session: Session, user_history_storage: "UserHistoryStorage"
+        self, session: Session, user_history_storage: UserHistoryStorage
     ) -> None:
         self._session = session
         self._user_history_storage = user_history_storage

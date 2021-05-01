@@ -2,8 +2,9 @@ from contextlib import closing
 from datetime import tzinfo
 
 import pytest
-from gb_chat.db.user import User, UserStorage
-from gb_chat.db.user_history import UserHistoryEventEnum, UserHistoryStorage
+from gb_chat.db.user_history_storage import (UserHistoryEventEnum,
+                                             UserHistoryStorage)
+from gb_chat.db.user_storage import User, UserStorage
 
 from conftest import TIME_FACTORY_DATETIME, VALID_PASSWORD, VALID_USERNAME
 
