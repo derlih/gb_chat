@@ -1,18 +1,6 @@
 import pytest
-from gb_chat.db.engine import make_engine
 from gb_chat.db.user import (InvalidName, InvalidPassword, UserExists,
                              UserStorage)
-from sqlalchemy.orm import sessionmaker
-
-
-@pytest.fixture
-def engine():
-    return make_engine("sqlite:///:memory:")
-
-
-@pytest.fixture
-def session_factory(engine):
-    return sessionmaker(engine)
 
 
 @pytest.fixture

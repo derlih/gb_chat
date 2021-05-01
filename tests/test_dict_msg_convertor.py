@@ -24,10 +24,18 @@ test_data_client_to_server = [
     ),
     (Quit(), {"action": "quit"}),
     (Presence(), {"action": "presence", "time": 123}),
-    (Presence(Status.ONLINE), {"action": "presence", "time": 123, "status": "online"},),
+    (
+        Presence(Status.ONLINE),
+        {"action": "presence", "time": 123, "status": "online"},
+    ),
     (
         ChatFromClient("recipient", "message text"),
-        {"action": "msg", "time": 123, "to": "recipient", "message": "message text",},
+        {
+            "action": "msg",
+            "time": 123,
+            "to": "recipient",
+            "message": "message text",
+        },
     ),
     (Join("#room_name"), {"action": "join", "room": "#room_name", "time": 123}),
     (Leave("#room_name"), {"action": "leave", "room": "#room_name", "time": 123}),
@@ -59,16 +67,16 @@ test_data_server_to_client = [
 @pytest.mark.parametrize(
     "msg,expected", test_data_client_to_server + test_data_server_to_client
 )
-def test_convert_msg_to_dict(msg, expected):
+def test_convert_msg_to_dict(msg, expected, time_factory):
     serializer = MagicMock(spec_set=Serializer)
-    sut = MessageSender(serializer, MagicMock(return_value=123))
+    sut = MessageSender(serializer, time_factory)
     sut.send(msg)
     serializer.serialize.assert_called_once_with(expected)
 
 
-def test_send_raises_when_unsupported_message():
+def test_send_raises_when_unsupported_message(time_factory):
     serializer = MagicMock(spec_set=Serializer)
-    sut = MessageSender(serializer, MagicMock(return_value=123))
+    sut = MessageSender(serializer, time_factory)
     with pytest.raises(UnsupportedMessageType):
         sut.send(MagicMock())
 
