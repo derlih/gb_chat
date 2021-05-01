@@ -1,13 +1,21 @@
+from unittest.mock import MagicMock
+
 import pytest
 from gb_chat.db.user import (InvalidName, InvalidPassword, UserExists,
                              UserStorage)
+from gb_chat.db.user_history import UserHistoryStorage
 
 from conftest import VALID_PASSWORD, VALID_USERNAME
 
 
 @pytest.fixture
-def sut(session):
-    return UserStorage(session)
+def user_history_storage():
+    return MagicMock(spec_set=UserHistoryStorage)
+
+
+@pytest.fixture
+def sut(session, user_history_storage):
+    return UserStorage(session, user_history_storage)
 
 
 @pytest.mark.parametrize("username", ["", " ", "user 1", "usr"])
@@ -22,8 +30,13 @@ def test_registers_user_raises_when_password_invalid(password, sut):
         sut.register_user(VALID_USERNAME, password)
 
 
-def test_registers_user(sut):
+def test_registers_user_adds_register_record(sut, user_history_storage):
     sut.register_user(VALID_USERNAME, VALID_PASSWORD)
+    user_history_storage.add_register_record.assert_called_once()
+    call = user_history_storage.add_register_record.mock_calls[0]
+    user = call.args[0]
+    assert user.username == VALID_USERNAME
+    assert user.password == VALID_PASSWORD
 
 
 @pytest.fixture

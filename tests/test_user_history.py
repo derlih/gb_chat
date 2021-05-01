@@ -18,8 +18,8 @@ def test_all_returns_nothing(sut):
 
 
 @pytest.fixture
-def user(session):
-    user_storage = UserStorage(session)
+def user(session, sut):
+    user_storage = UserStorage(session, sut)
     user_storage.register_user(VALID_USERNAME, VALID_PASSWORD)
 
     return session.query(User).filter(User.username == VALID_USERNAME).one()
@@ -32,8 +32,6 @@ def compare_history(history, event, time, user):
 
 
 def test_add_register_record(sut, user):
-    sut.add_register_record(user)
-
     all = sut.all()
     assert len(all) == 1
     compare_history(all[0], UserHistoryEventEnum.REGISTER, TIME_FACTORY_DATETIME, user)
@@ -43,13 +41,13 @@ def test_add_login_record(sut, user):
     sut.add_login_record(user)
 
     all = sut.all()
-    assert len(all) == 1
-    compare_history(all[0], UserHistoryEventEnum.LOGIN, TIME_FACTORY_DATETIME, user)
+    assert len(all) == 2
+    compare_history(all[1], UserHistoryEventEnum.LOGIN, TIME_FACTORY_DATETIME, user)
 
 
 def test_add_logout_record(sut, user):
     sut.add_logout_record(user)
 
     all = sut.all()
-    assert len(all) == 1
-    compare_history(all[0], UserHistoryEventEnum.LOGOUT, TIME_FACTORY_DATETIME, user)
+    assert len(all) == 2
+    compare_history(all[1], UserHistoryEventEnum.LOGOUT, TIME_FACTORY_DATETIME, user)

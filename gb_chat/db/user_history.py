@@ -76,11 +76,5 @@ class UserHistoryStorage:
         self._add_record(user, UserHistoryEventEnum.LOGOUT)
 
     def _add_record(self, user: User, event: UserHistoryEventEnum) -> None:
-        self._session.add(
-            UserHistory(
-                user_id=user.user_id,
-                event=event,
-                time=self._time_factory(),
-            )
-        )
+        user.history.append(UserHistory(event=event, time=self._time_factory()))
         self._session.commit()

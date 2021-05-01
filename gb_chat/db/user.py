@@ -29,15 +29,20 @@ class User(Base):
 
 
 class UserStorage:
-    def __init__(self, session: Session) -> None:
+    def __init__(
+        self, session: Session, user_history_storage: "UserHistoryStorage"
+    ) -> None:
         self._session = session
+        self._user_history_storage = user_history_storage
 
     def register_user(self, username: str, password: str) -> None:
         self._check_username(username)
         self._check_password_complexity(password)
 
         try:
-            self._session.add(User(username=username, password=password))
+            user = User(username=username, password=password)
+            self._session.add(user)
+            self._user_history_storage.add_register_record(user)
             self._session.commit()
         except IntegrityError:
             raise UserExists()
