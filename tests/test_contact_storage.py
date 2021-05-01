@@ -25,7 +25,7 @@ def owner(session, user_storage):
     name = VALID_USERNAME + "owner"
     user_storage.register_user(name, VALID_PASSWORD)
 
-    return session.query(User).filter(User.username == name).one()
+    return user_storage.get_user_by_name(name)
 
 
 @pytest.fixture
@@ -33,7 +33,7 @@ def contact(session, user_storage):
     name = VALID_USERNAME + "contact"
     user_storage.register_user(name, VALID_PASSWORD)
 
-    return session.query(User).filter(User.username == name).one()
+    return user_storage.get_user_by_name(name)
 
 
 def test_add_contacts_raises_when_add_self(sut, owner):

@@ -23,7 +23,7 @@ def user(session, sut):
     user_storage = UserStorage(session, sut)
     user_storage.register_user(VALID_USERNAME, VALID_PASSWORD)
 
-    return session.query(User).filter(User.username == VALID_USERNAME).one()
+    return user_storage.get_user_by_name(VALID_USERNAME)
 
 
 def compare_history(history, event, time, user):

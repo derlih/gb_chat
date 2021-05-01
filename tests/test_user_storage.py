@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 from gb_chat.db.user_history_storage import UserHistoryStorage
 from gb_chat.db.user_storage import (InvalidName, InvalidPassword, UserExists,
-                                     UserStorage)
+                                     UserNotFound, UserStorage)
 
 from conftest import VALID_PASSWORD, VALID_USERNAME
 
@@ -55,3 +55,14 @@ def test_registers_user_raises_when_same_name(sut_with_user):
 )
 def test_credentials_invalid(username, password, sut_with_user):
     assert not sut_with_user.credentials_valid(username, password)
+
+
+def test_get_user_raises_when_no_user_found(sut):
+    with pytest.raises(UserNotFound):
+        sut.get_user_by_name("aaaa")
+
+
+def test_get_user_raises_when_no_user_found(sut_with_user):
+    user = sut_with_user.get_user_by_name(VALID_USERNAME)
+    assert user.username == VALID_USERNAME
+    assert user.password == VALID_PASSWORD

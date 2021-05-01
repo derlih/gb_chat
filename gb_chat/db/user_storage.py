@@ -1,6 +1,7 @@
 import re
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql import and_, exists
 
@@ -17,6 +18,10 @@ class InvalidPassword(ValueError):
 
 
 class UserExists(ValueError):
+    pass
+
+
+class UserNotFound(ValueError):
     pass
 
 
@@ -44,6 +49,12 @@ class UserStorage:
             and_(User.username == username, User.password == password)
         )
         return self._session.query(stmt).scalar()  # type: ignore
+
+    def get_user_by_name(self, username: str) -> User:
+        try:
+            return self._session.query(User).filter(User.username == username).one()
+        except NoResultFound:
+            raise UserNotFound(f"user with username={username}")
 
     @staticmethod
     def _check_username(username: str) -> None:
