@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Callable
 
-TimeFactory = Callable[[], float]
+TimeFactory = Callable[[], datetime]

@@ -1,3 +1,4 @@
+from datetime import datetime
 from time import time
 from typing import Any, Callable, Union
 
@@ -20,7 +21,7 @@ Message = Union[ClientToServerMessage, ServerToClientMessage]
 
 class MessageSender:
     def __init__(
-        self, serializer: Serializer, time_factory: TimeFactory = time
+        self, serializer: Serializer, time_factory: TimeFactory = datetime.utcnow
     ) -> None:
         self._serializer = serializer
         self._time_factory = time_factory
@@ -29,7 +30,7 @@ class MessageSender:
         _logger.debug("Convert", msg=msg)
         msg_dict = self._convert(msg)
         if not isinstance(msg, Quit):
-            msg_dict["time"] = self._time_factory()
+            msg_dict["time"] = self._time_factory().timestamp()
         self._serializer.serialize(msg_dict)
 
     @staticmethod

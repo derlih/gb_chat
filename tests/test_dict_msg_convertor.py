@@ -13,49 +13,62 @@ from gb_chat.msg.server_to_client import ChatToClient, Probe, Response
 from gb_chat.msg.status import Status
 from gb_chat.server.message_router import MessageRouter as ServerMessageRouter
 
+from conftest import TIME_FACTORY_TIMESTAMP
+
 test_data_client_to_server = [
     (
         Authenticate("user_name", "pass"),
         {
             "action": "authenticate",
-            "time": 123,
+            "time": TIME_FACTORY_TIMESTAMP,
             "user": {"account_name": "user_name", "password": "pass"},
         },
     ),
     (Quit(), {"action": "quit"}),
-    (Presence(), {"action": "presence", "time": 123}),
+    (Presence(), {"action": "presence", "time": TIME_FACTORY_TIMESTAMP}),
     (
         Presence(Status.ONLINE),
-        {"action": "presence", "time": 123, "status": "online"},
+        {"action": "presence", "time": TIME_FACTORY_TIMESTAMP, "status": "online"},
     ),
     (
         ChatFromClient("recipient", "message text"),
         {
             "action": "msg",
-            "time": 123,
+            "time": TIME_FACTORY_TIMESTAMP,
             "to": "recipient",
             "message": "message text",
         },
     ),
-    (Join("#room_name"), {"action": "join", "room": "#room_name", "time": 123}),
-    (Leave("#room_name"), {"action": "leave", "room": "#room_name", "time": 123}),
+    (
+        Join("#room_name"),
+        {"action": "join", "room": "#room_name", "time": TIME_FACTORY_TIMESTAMP},
+    ),
+    (
+        Leave("#room_name"),
+        {"action": "leave", "room": "#room_name", "time": TIME_FACTORY_TIMESTAMP},
+    ),
 ]
 
 test_data_server_to_client = [
     (
         Response(HTTPStatus.OK, "message text"),
-        {"response": 200, "message": "message text", "time": 123},
+        {"response": 200, "message": "message text", "time": TIME_FACTORY_TIMESTAMP},
     ),
-    (Probe(), {"action": "probe", "time": 123}),
+    (Probe(), {"action": "probe", "time": TIME_FACTORY_TIMESTAMP}),
     (
         ChatToClient("sender", "message text"),
-        {"action": "msg", "time": 123, "from": "sender", "message": "message text"},
+        {
+            "action": "msg",
+            "time": TIME_FACTORY_TIMESTAMP,
+            "from": "sender",
+            "message": "message text",
+        },
     ),
     (
         ChatToClient("sender", "message text", "#room"),
         {
             "action": "msg",
-            "time": 123,
+            "time": TIME_FACTORY_TIMESTAMP,
             "from": "sender",
             "message": "message text",
             "room": "#room",
