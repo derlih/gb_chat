@@ -47,6 +47,10 @@ def configure_logging(processor: Any, level: int) -> None:
                     "handlers": ["default"],
                     "level": level_str,
                 },
+                "PyQt5": {
+                    "handlers": ["default"],
+                    "level": level_str,
+                },
             },
         }
     )

@@ -3,10 +3,13 @@ import logging
 import selectors
 import socket
 import threading
+from pathlib import Path
 from typing import Any, Dict, List
 
 import click
+import netifaces
 import structlog
+from PyQt5.QtWidgets import QApplication, QDialog
 
 from gb_chat.common.disconnector import Disconnector
 from gb_chat.common.exceptions import NothingToRead, UnableToWrite
@@ -25,6 +28,7 @@ from gb_chat.log import (bind_client_name_to_logger,
                          get_logger)
 from gb_chat.server.chat_room_manager import ChatRoomManager
 from gb_chat.server.client import Client
+from gb_chat.server.gui.initial_config_dialog import InitialConfigDialog
 from gb_chat.server.message_router import MessageRouter
 from gb_chat.server.server import Server
 
@@ -196,15 +200,9 @@ def schedule_probes_loop(
         io_thread_executor.schedule(server.send_probes)
 
 
-@click.command()
-@click.option("-a", "--address", type=str, default="localhost", show_default=True)
-@click.option(
-    "-p", "--port", type=click.IntRange(1, 65535), default=7777, show_default=True
-)
-@click.option("-v", "--verbose", is_flag=True, default=False, show_default=True)
-def main(address: str, port: int, verbose: bool) -> None:
-    log_level = logging.DEBUG if verbose else logging.ERROR
-    configure_logging(structlog.dev.ConsoleRenderer(colors=False), log_level)
+def io_main(
+    address: str, port: int, db_url: str, verbose: bool, event: threading.Event
+) -> None:
     logger = _logger.bind(address=address, port=port)
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_sock:
@@ -214,7 +212,6 @@ def main(address: str, port: int, verbose: bool) -> None:
         server_sock.listen()
 
         with selectors.DefaultSelector() as sel:
-            event = threading.Event()
             io_thread_executor = IoThreadExecutor()
             server = Server(ChatRoomManager(RoomNameValidator()))
             handler = SocketHandler(sel, server, io_thread_executor)
@@ -248,5 +245,44 @@ def main(address: str, port: int, verbose: bool) -> None:
                 send_probes_thread.join()
 
 
+def get_all_local_listanable_addresses() -> List[str]:
+    listen_addresses = ["0.0.0.0"]
+    for iface in netifaces.interfaces():
+        for iface_type, iface_info in netifaces.ifaddresses(iface).items():
+            if iface_type != netifaces.AF_INET:
+                continue
+
+            for addr_info in iface_info:
+                listen_addresses.append(addr_info["addr"])
+
+    return listen_addresses
+
+
+@click.command()
+@click.option("-v", "--verbose", is_flag=True, default=False, show_default=True)
+def ui_main(verbose: bool):
+    log_level = logging.DEBUG if verbose else logging.ERROR
+    configure_logging(structlog.dev.ConsoleRenderer(colors=False), log_level)
+
+    app = QApplication([])
+
+    default_db_path = Path(".").absolute() / "server.sqlite3"
+    dlg = InitialConfigDialog(get_all_local_listanable_addresses(), default_db_path)
+    if dlg.exec_() != QDialog.DialogCode.Accepted:
+        return
+
+    listen_address = dlg.get_listen_address()
+    listen_port = dlg.get_listen_port()
+    db_path = dlg.get_db_path()
+
+    if db_path is None:
+        db_url = "sqlite://"
+    else:
+        db_url = f"sqlite:///{db_path}"
+
+    event = threading.Event()
+    io_main(listen_address, listen_port, db_url, verbose, event)
+
+
 if __name__ == "__main__":
-    main()
+    ui_main()
