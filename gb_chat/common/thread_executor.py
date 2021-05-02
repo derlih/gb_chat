@@ -22,7 +22,10 @@ class IoThreadExecutor:
         try:
             while True:
                 fun = self._queue.get_nowait()
-                self._logger.debug("Execute task", qsize=self._queue.qsize())
+                self._logger.debug(
+                    "Execute task",
+                    qsize=self._queue.qsize(),
+                )
                 fun()
         except Empty:
             return
@@ -40,8 +43,10 @@ class UiThreadExecutor(QObject):
     def __init__(self, app: QApplication) -> None:
         super().__init__(parent=None)
         self._app = app
+        self._logger: Any = get_logger("UiThreadExecutor")
 
     def schedule(self, fun: Function) -> None:
+        self._logger.debug("Schedule task")
         self._app.postEvent(self, _FunctionEvent(fun))
 
     def event(self, e: QEvent) -> bool:
@@ -49,5 +54,6 @@ class UiThreadExecutor(QObject):
             return super().event(e)
 
         fun_event = cast(_FunctionEvent, e)
+        self._logger.debug("Execute task")
         fun_event.fun()
         return True
