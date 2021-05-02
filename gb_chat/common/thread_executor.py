@@ -1,5 +1,8 @@
 from queue import Empty, SimpleQueue
-from typing import Any, Callable
+from typing import Any, Callable, Optional, cast
+
+from PyQt5.QtCore import QEvent, QObject
+from PyQt5.QtWidgets import QApplication
 
 from ..log import get_logger
 
@@ -23,3 +26,28 @@ class IoThreadExecutor:
                 fun()
         except Empty:
             return
+
+
+class _FunctionEvent(QEvent):
+    EVENT_TYPE: QEvent.Type = QEvent.Type.User
+
+    def __init__(self, fun: Function) -> None:
+        super().__init__(self.EVENT_TYPE)
+        self.fun = fun
+
+
+class UiThreadExecutor(QObject):
+    def __init__(self, app: QApplication) -> None:
+        super().__init__(parent=None)
+        self._app = app
+
+    def schedule(self, fun: Function) -> None:
+        self._app.postEvent(self, _FunctionEvent(fun))
+
+    def event(self, e: QEvent) -> bool:
+        if e.type() != _FunctionEvent.EVENT_TYPE:
+            return super().event(e)
+
+        fun_event = cast(_FunctionEvent, e)
+        fun_event.fun()
+        return True

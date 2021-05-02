@@ -1,15 +1,29 @@
 from unittest.mock import MagicMock
 
 import pytest
-from gb_chat.common.thread_executor import IoThreadExecutor
+from gb_chat.common.thread_executor import IoThreadExecutor, UiThreadExecutor
+from PyQt5.QtWidgets import QApplication
 
 
 @pytest.mark.parametrize("tasks", [[MagicMock()], [MagicMock(), MagicMock()]])
 def test_io_thread_execute(tasks):
-    io_thread_executor = IoThreadExecutor()
+    sut = IoThreadExecutor()
     for task in tasks:
-        io_thread_executor.schedule(task)
+        sut.schedule(task)
 
-    io_thread_executor.execute_all()
+    sut.execute_all()
+    for task in tasks:
+        task.assert_called_once()
+
+
+@pytest.mark.parametrize("tasks", [[MagicMock()], [MagicMock(), MagicMock()]])
+def test_ui_thread_execute(tasks):
+    app = QApplication([])
+    sut = UiThreadExecutor(app)
+    for task in tasks:
+        sut.schedule(task)
+
+    app.sendPostedEvents(sut)
+
     for task in tasks:
         task.assert_called_once()
