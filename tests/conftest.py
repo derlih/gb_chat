@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from gb_chat.db.engine import make_engine
+from PyQt5.QtWidgets import QApplication
 from sqlalchemy.orm import sessionmaker
 
 TIME_FACTORY_TIMESTAMP = 1619857471.0
@@ -22,3 +23,8 @@ def session():
     engine = make_engine("sqlite:///:memory:")
     with closing(sessionmaker(engine)()) as s:
         yield s
+
+
+@pytest.fixture
+def qapp():
+    return QApplication([])

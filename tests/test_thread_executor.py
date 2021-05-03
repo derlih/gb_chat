@@ -17,13 +17,12 @@ def test_io_thread_execute(tasks):
 
 
 @pytest.mark.parametrize("tasks", [[MagicMock()], [MagicMock(), MagicMock()]])
-def test_ui_thread_execute(tasks):
-    app = QApplication([])
-    sut = UiThreadExecutor(app)
+def test_ui_thread_execute(tasks, qapp):
+    sut = UiThreadExecutor(qapp)
     for task in tasks:
         sut.schedule(task)
 
-    app.sendPostedEvents(sut)
+    qapp.sendPostedEvents(sut)
 
     for task in tasks:
         task.assert_called_once()
